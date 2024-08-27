@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "goitcursova"
+version = "0.1.0"
+description = ""
+authors = ["Group"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+sqlalchemy = "^2.0.32"
+fastapi = "^0.112.2"
+uvicorn = "^0.30.6"
+psycopg2-binary = "^2.9.9"
+pydantic = "^2.8.2"
+python-dotenv = "^1.0.1"
+cloudinary = "^1.41.0"
+qrcode = "^7.4.2"
+pytest = "^8.3.2"
+alembic = "^1.13.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,14 @@
+
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+pydantic
+python-dotenv
+cloudinary
+qrcode
+pytest
+alembic
+pydantic_settings
+fastapi[standard]
+asyncpg
