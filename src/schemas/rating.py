@@ -1,11 +1,14 @@
 from pydantic import BaseModel, condecimal
 from typing import Optional
 
+
 class RatingBase(BaseModel):
-    score: condecimal(gt=0, lt=6) 
+    score: condecimal(gt=0, lt=6)
+
 
 class RatingCreate(RatingBase):
     pass
+
 
 class RatingInDBBase(RatingBase):
     id: int
@@ -14,6 +17,7 @@ class RatingInDBBase(RatingBase):
 
     class Config:
         orm_mode = True
+
 
 class Rating(RatingInDBBase):
     pass

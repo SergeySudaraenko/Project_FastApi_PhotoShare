@@ -1,15 +1,17 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
-from src.database.models import Tag,Comment,Rating
+from src.database.models import Tag, Comment, Rating
 
 
 class PhotoBase(BaseModel):
     url: str
     description: Optional[str] = None
 
+
 class PhotoCreate(PhotoBase):
     tags: Optional[List[str]] = None
+
 
 class PhotoInDBBase(PhotoBase):
     id: int
@@ -21,10 +23,12 @@ class PhotoInDBBase(PhotoBase):
     class Config:
         orm_mode = True
 
+
 class Photo(PhotoInDBBase):
     tags: List["Tag"] = []
     comments: List["Comment"] = []
     ratings: List["Rating"] = []
+
 
 class PhotoURLResponse(BaseModel):
     url: str

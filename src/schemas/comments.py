@@ -2,14 +2,18 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 
+
 class CommentBase(BaseModel):
     comment_text: str
+
 
 class CommentCreate(CommentBase):
     pass
 
+
 class CommentUpdate(BaseModel):
     comment_text: Optional[str] = None
+
 
 class CommentInDBBase(CommentBase):
     id: int
@@ -20,6 +24,7 @@ class CommentInDBBase(CommentBase):
 
     class Config:
         orm_mode = True
+
 
 class Comment(CommentInDBBase):
     pass
