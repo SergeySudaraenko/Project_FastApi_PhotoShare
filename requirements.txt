@@ -1,4 +1,3 @@
-
 fastapi
 uvicorn
 sqlalchemy
@@ -9,3 +8,6 @@ cloudinary
 qrcode
 pytest
 alembic
+pydantic_settings
+fastapi[standard]
+asyncpg
