@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from config.config import Photo
-from routes.comments import get_current_user
+from src.database.models import Photo
+from src.routes.comments import get_current_user
 from src.database.db import get_db
 from src.repository import crud
 from src.schemas.photos import PhotoCreate

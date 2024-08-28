@@ -1,8 +1,8 @@
 from pydantic import BaseModel, condecimal
-from typing import Optional
+
 
 class RatingBase(BaseModel):
-    score: condecimal(gt=0, lt=6) 
+    score: condecimal(gt=0, lt=6)  # type: ignore
 
 class RatingCreate(RatingBase):
     pass

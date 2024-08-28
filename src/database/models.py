@@ -7,6 +7,10 @@ from sqlalchemy import String, DateTime, UniqueConstraint, func, Enum, ForeignKe
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from src.database.db import Base
 
+
+class Base(DeclarativeBase):
+    pass
+
 class Role(enum.Enum):
     admin = "admin"
     moderator = "moderator"
@@ -28,6 +32,7 @@ class User(Base):
     confirmed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True)
     
     ratings = relationship("Rating", back_populates="user")
+    comments = relationship("Comment", back_populates="user")
 
 class Photo(Base):
     __tablename__ = 'photos'

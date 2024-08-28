@@ -3,8 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.db import get_db
 from src.repository import crud
 from src.schemas.comments import CommentCreate, CommentUpdate
-from src.database.models import Comment
-from src.config.config import Role
+from src.database.models import Comment, Role
 from fastapi.security import OAuth2PasswordBearer
 from typing import List
 

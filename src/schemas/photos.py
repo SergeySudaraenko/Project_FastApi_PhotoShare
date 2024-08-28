@@ -19,7 +19,7 @@ class PhotoInDBBase(PhotoBase):
     average_rating: float = 0.0
 
     class Config:
-        orm_mode = True
+         orm_mode = True
 
 class Photo(PhotoInDBBase):
     tags: List["Tag"] = []
