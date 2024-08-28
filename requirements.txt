@@ -12,3 +12,4 @@ alembic
 pydantic_settings
 fastapi[standard]
 asyncpg
+libgravatar

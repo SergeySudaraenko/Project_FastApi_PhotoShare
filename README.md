@@ -20,5 +20,12 @@ PhotoShare - це REST API для роботи зі світлинами, ком
 
 2. Встановіть залежності:
 
-   ```bash
-   pip install -r requirements.txt
+   poetry init
+   poetry shell
+   poetry install
+   
+docker run --name postgres -e POSTGRES_DB=ProjectDB -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=567234 -p 5432:5432 -d postgres
+
+poetry run alembic init alembic
+poetry run alembic revision --autogenerate -m "Initial migration"
+poetry run alembic upgrade head

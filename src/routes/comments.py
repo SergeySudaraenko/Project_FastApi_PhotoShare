@@ -1,70 +1,59 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.db import get_db
-from src.repository import crud
-from src.schemas.comments import CommentCreate, CommentUpdate
-from src.database.models import Comment, Role
-from fastapi.security import OAuth2PasswordBearer
-from typing import List
+from src.database.models import Role
+from src.repository.comment import create_comment, update_comment, delete_comment, get_comment, get_comments_by_photo
+from src.services.auth_service import auth_service
 
 router = APIRouter()
 
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-def get_current_user(token: str = Depends(oauth2_scheme)):
-    # Тут треба функція для перевірки токена користувача(чи не писати зовсім)
-    pass
-
-@router.post("/comments/", response_model=Comment)
-async def create_comment(
-    comment: CommentCreate,
+@router.post("/", status_code=status.HTTP_201_CREATED)
+async def post_comment(
     photo_id: int,
+    comment_text: str,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(lambda token: auth_service.get_current_user(token))
 ):
-    user_id = current_user["id"]  
-    return await crud.create_comment(db, comment, user_id, photo_id)
+    new_comment = await create_comment(db, current_user["id"], photo_id, comment_text)
+    return {"comment_id": new_comment.id, "message": "Comment created successfully"}
 
-@router.get("/comments/{comment_id}", response_model=Comment)
-async def read_comment(comment_id: int, db: AsyncSession = Depends(get_db)):
-    comment = await crud.get_comment(db, comment_id)
-    if comment is None:
-        raise HTTPException(status_code=404, detail="Comment not found")
-    return comment
-
-@router.put("/comments/{comment_id}", response_model=Comment)
-async def update_comment(
+@router.put("/{comment_id}", status_code=status.HTTP_200_OK)
+async def edit_comment(
     comment_id: int,
-    comment: CommentUpdate,
+    new_text: str,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(lambda token: auth_service.get_current_user(token))
 ):
-  
-    existing_comment = await crud.get_comment(db, comment_id)
-    if existing_comment is None:
-        raise HTTPException(status_code=404, detail="Comment not found")
-    if existing_comment.user_id != current_user["id"] and current_user["role"] not in [Role.admin, Role.moderator]:
-        raise HTTPException(status_code=403, detail="Not authorized to update this comment")
-    return await crud.update_comment(db, comment_id, comment)
+    comment = await get_comment(db, comment_id)
+    if not comment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
+    if comment.user_id != current_user["id"] and current_user["role"] not in [Role.admin, Role.moderator]:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to edit this comment")
+    updated_comment = await update_comment(db, comment_id, new_text)
+    if not updated_comment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
+    return {"message": "Comment updated successfully"}
 
-@router.delete("/comments/{comment_id}", response_model=dict)
+@router.delete("/{comment_id}", status_code=status.HTTP_200_OK)
 async def delete_comment(
     comment_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(lambda token: auth_service.get_current_user(token))
 ):
-    
-    existing_comment = await crud.get_comment(db, comment_id)
-    if existing_comment is None:
-        raise HTTPException(status_code=404, detail="Comment not found")
-    if existing_comment.user_id != current_user["id"] and current_user["role"] not in [Role.admin, Role.moderator]:
-        raise HTTPException(status_code=403, detail="Not authorized to delete this comment")
-    success = await crud.delete_comment(db, comment_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="Comment not found")
-    return {"status": "Comment deleted"}
+    comment = await get_comment(db, comment_id)
+    if not comment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
+    if comment.user_id != current_user["id"] and current_user["role"] not in [Role.admin, Role.moderator]:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to delete this comment")
+    deleted_comment = await delete_comment(db, comment_id)
+    if not deleted_comment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
+    return {"message": "Comment deleted successfully"}
 
-@router.get("/photos/{photo_id}/comments", response_model=List[Comment])
-async def read_comments_for_photo(photo_id: int, db: AsyncSession = Depends(get_db)):
-    return await crud.get_comments_for_photo(db, photo_id)
+@router.get("/photo/{photo_id}", response_model=list)
+async def get_comments(
+    photo_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    comments = await get_comments_by_photo(db, photo_id)
+    return comments
