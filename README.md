@@ -29,3 +29,6 @@ docker run --name postgres -e POSTGRES_DB=ProjectDB -e POSTGRES_USER=postgres -e
 poetry run alembic init alembic
 poetry run alembic revision --autogenerate -m "Initial migration"
 poetry run alembic upgrade head
+
+poetry run uvicorn main:app --reload
+

@@ -2,13 +2,14 @@ from pathlib import Path
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from fastapi_mail.errors import ConnectionErrors
 from pydantic import EmailStr
-from services import auth_service
+from src.services import auth_service
 from src.config.config import settings
 
+
 conf = ConnectionConfig(
-    MAIL_USERNAME=settings.MAIL_USERNAME,
+    MAIL_USERNAME=settings.MAIL_USERNAME,  
     MAIL_PASSWORD=settings.MAIL_PASSWORD,
-    MAIL_FROM=settings.MAIL_USERNAME,
+    MAIL_FROM="admin@yourdomain.com",  
     MAIL_PORT=settings.MAIL_PORT,
     MAIL_SERVER=settings.MAIL_SERVER,
     MAIL_FROM_NAME="OnlyPySystems",
@@ -16,7 +17,7 @@ conf = ConnectionConfig(
     MAIL_SSL_TLS=True,
     USE_CREDENTIALS=True,
     VALIDATE_CERTS=True,
-    TEMPLATE_FOLDER=Path(__file__).parent / 'templates',
+    # TEMPLATE_FOLDER=Path(__file__).parent / 'templates'
 )
 
 

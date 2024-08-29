@@ -1,10 +1,11 @@
+
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.routes import auth, comments, photos, profile, rating, search, users
 from src.config.config import settings
 from src.database.db import get_db
-from src.routes import auth, comments, profile, rating, search, photos,users
 from src.services.auth_service import Auth
 from src.database.models import Role, User
 from contextlib import asynccontextmanager

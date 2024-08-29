@@ -1,6 +1,6 @@
 from fastapi import Request, Depends, HTTPException, status
 
-from services import auth_service
+from src.services import auth_service
 from src.database.models import Role, User
 
 
