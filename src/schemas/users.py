@@ -3,21 +3,6 @@ from datetime import datetime
 from typing import Optional
 from src.schemas.auth import Role
 
-class UserSchema(BaseModel):
-    username: str = Field(min_length=3, max_length=50)
-    email: EmailStr
-    password: str = Field(min_length=6, max_length=255)
-
-class UserResponse(BaseModel):
-    id: int = 1
-    username: str
-    email: EmailStr
-    avatar: str
-    role: Role
-
-    class Config:
-        from_attributes = True
-
 class TokenSchema(BaseModel):
     access_token: str
     refresh_token: str
@@ -28,17 +13,19 @@ class RequestEmail(BaseModel):
 
 class UserBase(BaseModel):
     username: str = Field(min_length=3, max_length=50)
+    email: EmailStr
+    avatar: Optional[str] = None
+
+class UserCreate(UserBase):
+    password: str = Field(min_length=6, max_length=255)
 
 class UserDbModel(BaseModel):
     uid: str
     username: str
     email: EmailStr
-    avatar: str
+    avatar: Optional[str] = None
     role: Role
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 class UserResponseSchema(BaseModel):
     user: UserDbModel
@@ -48,5 +35,24 @@ class UserUpdateSchema(BaseModel):
     email: Optional[EmailStr]
     avatar_url: Optional[str]
 
+class UserUpdate(BaseModel):
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+    avatar: Optional[str] = None
+    is_active: Optional[bool] = None
+
+class UserResponse(UserBase):
+    id: str  
+    created_at: datetime
+    updated_at: datetime
+    role: Role
+    confirmed: Optional[bool] = None
+    is_active: bool
+
+class UserSchema(BaseModel):
+    username: str = Field(min_length=3, max_length=50)
+    email: EmailStr
+    password: str = Field(min_length=6, max_length=255)
+
     class Config:
-        from_attributes = True
+        orm_mode = True

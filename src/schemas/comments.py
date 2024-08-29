@@ -8,11 +8,12 @@ class CommentBase(BaseModel):
 
 
 class CommentCreate(CommentBase):
-    pass
+    photo_id: int
 
 
 class CommentUpdate(BaseModel):
     comment_text: Optional[str] = None
+    photo_id: Optional[int] = None
 
 
 class CommentInDBBase(CommentBase):
@@ -23,7 +24,7 @@ class CommentInDBBase(CommentBase):
     photo_id: int
 
     class Config:
-        from_attributes = True
+        orm_mode = True  
 
 
 class Comment(CommentInDBBase):

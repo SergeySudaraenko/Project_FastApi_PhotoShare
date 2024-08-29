@@ -10,7 +10,7 @@ async def upload_photo(
     url: str,
     description: str,
     owner_id: int,
-    tag_names: list = [],  # Список тегів, які передаються як параметри
+    tag_names: list = [],  
     db: AsyncSession = Depends(get_db)
 ):
     if len(tag_names) > 5:

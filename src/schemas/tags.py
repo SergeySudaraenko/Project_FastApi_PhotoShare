@@ -13,8 +13,7 @@ class TagInDBBase(TagBase):
     id: int
 
     class Config:
-        from_attributes = True
+        orm_mode = True 
 
-
-class Tag(TagInDBBase):
+class TagResponse(TagInDBBase):
     pass

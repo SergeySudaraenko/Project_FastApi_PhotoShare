@@ -28,7 +28,7 @@ class AuthInDBBase(AuthBase):
     confirmed: bool
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 
 class Auth(AuthInDBBase):
@@ -45,3 +45,7 @@ class AuthUpdate(BaseModel):
 class AuthToken(BaseModel):
     access_token: str
     token_type: str
+    
+class TokenData(BaseModel):
+    username: str
+    role: str
