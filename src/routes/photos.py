@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.db import get_db
-from src.repository.photos import create_photo_with_tags
+from src.repository.photo import create_photo_with_tags
 
 router = APIRouter()
 

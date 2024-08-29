@@ -9,7 +9,7 @@ from jose import JWTError, jwt
 
 
 from src.database.db import get_db
-from src.repository import users as repository_users
+from repository import user as repository_users
 from src.config.config import settings
 
 

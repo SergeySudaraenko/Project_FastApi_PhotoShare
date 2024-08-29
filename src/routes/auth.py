@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.services import auth_service
 from src.database.db import get_db
-from src.repository import users as repositories_users
+from src.repository import user as repositories_users
 from src.schemas.users import UserSchema, TokenSchema, UserResponse, RequestEmail
 from src.services.email import send_email
 from src.config import messages

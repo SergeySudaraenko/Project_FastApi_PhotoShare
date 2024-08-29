@@ -3,8 +3,8 @@ import uuid
 from datetime import datetime
 from typing import List
 
-from sqlalchemy import String, DateTime, func, Enum, ForeignKey, Integer, Boolean, Table, Column
-from sqlalchemy.orm import  Mapped, mapped_column, relationship
+from sqlalchemy import Column, String, DateTime, func, Enum, ForeignKey, Integer, Boolean, Table
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database.db import Base
 
@@ -33,7 +33,7 @@ class User(Base):
 # Модель для фото
 class Photo(Base):
     __tablename__ = 'photos'
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
     url: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     description: Mapped[str] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
@@ -42,12 +42,13 @@ class Photo(Base):
     owner: Mapped["User"] = relationship("User", backref="photos")
     photo_tags: Mapped[List["Tag"]] = relationship("Tag", secondary="photo_tag", back_populates="photos")
     comments: Mapped[List["Comment"]] = relationship("Comment", back_populates="photo")
+    ratings: Mapped[List["Rating"]] = relationship("Rating", back_populates="photo")
 
 # Модель для тегів
 class Tag(Base):
     __tablename__ = "tags"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    tag_name: Mapped[str] = mapped_column(String(50), unique=True)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    tag_name: Mapped[str] = mapped_column(String(50), unique=True, index=True)
     photos: Mapped[List["Photo"]] = relationship("Photo", secondary="photo_tag", back_populates="photo_tags")
 
 # Таблиця для зв'язку фото і тегів
@@ -69,8 +70,7 @@ class Comment(Base):
     photo_id: Mapped[int] = mapped_column(Integer, ForeignKey("photos.id"), nullable=False)
     photo: Mapped["Photo"] = relationship("Photo", back_populates="comments")
 
-
-
+# Модель для рейтингів
 class Rating(Base):
     __tablename__ = "ratings"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)

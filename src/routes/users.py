@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 import cloudinary
 import cloudinary.uploader
-from services import auth_service
+from src.services import auth_service
 from src.database.db import get_db
 from src.database.models import User
-from src.repository import users as repositories_users
+from src.repository import user as repositories_users
 from src.config.config import settings
 from src.schemas.users import UserResponse
 

@@ -1,30 +1,39 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 from sqlalchemy.future import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.schemas.photos import PhotoCreate
-from src.database.models import Comment
+from src.database.models import Comment, Tag, Photo
 from src.schemas.comments import CommentCreate, CommentUpdate
 from src.schemas.tags import TagCreate
-from src.database.models import Tag,Photo
 
 
-
-
-async def create_tag(db: Session, tag_create: TagCreate) -> Tag:
+async def create_tag(db: AsyncSession, tag_create: TagCreate) -> Tag:
     db_tag = Tag(tag_name=tag_create.tag_name)
     db.add(db_tag)
     await db.commit()
     await db.refresh(db_tag)
     return db_tag
 
-async def get_tag_by_name(db: Session, tag_name: str) -> Tag:
+async def get_tag_by_name(db: AsyncSession, tag_name: str) -> Optional[Tag]:
     query = select(Tag).filter(Tag.tag_name == tag_name)
     result = await db.execute(query)
     return result.scalar_one_or_none()
 
-async def create_comment(db: Session, comment_create: CommentCreate, user_id: int, photo_id: int) -> Comment:
+async def get_or_create(db: AsyncSession, model, **kwargs):
+    async with db.begin():
+        stmt = select(model).filter_by(**kwargs)
+        result = await db.execute(stmt)
+        instance = result.scalars().first()
+        if not instance:
+            instance = model(**kwargs)
+            db.add(instance)
+            await db.commit()
+        return instance
+   
+
+async def create_comment(db: AsyncSession, comment_create: CommentCreate, user_id: int, photo_id: int) -> Comment:
     db_comment = Comment(
         comment_text=comment_create.comment_text,
         user_id=user_id,
@@ -35,12 +44,12 @@ async def create_comment(db: Session, comment_create: CommentCreate, user_id: in
     await db.refresh(db_comment)
     return db_comment
 
-async def get_comment(db: Session, comment_id: int) -> Comment:
+async def get_comment(db: AsyncSession, comment_id: int) -> Optional[Comment]:
     query = select(Comment).filter(Comment.id == comment_id)
     result = await db.execute(query)
     return result.scalar_one_or_none()
 
-async def update_comment(db: Session, comment_id: int, comment_update: CommentUpdate) -> Comment:
+async def update_comment(db: AsyncSession, comment_id: int, comment_update: CommentUpdate) -> Optional[Comment]:
     query = select(Comment).filter(Comment.id == comment_id)
     result = await db.execute(query)
     comment = result.scalar_one_or_none()
@@ -51,7 +60,7 @@ async def update_comment(db: Session, comment_id: int, comment_update: CommentUp
         await db.refresh(comment)
     return comment
 
-async def delete_comment(db: Session, comment_id: int) -> bool:
+async def delete_comment(db: AsyncSession, comment_id: int) -> bool:
     query = select(Comment).filter(Comment.id == comment_id)
     result = await db.execute(query)
     comment = result.scalar_one_or_none()
@@ -61,12 +70,12 @@ async def delete_comment(db: Session, comment_id: int) -> bool:
         return True
     return False
 
-async def get_comments_for_photo(db: Session, photo_id: int) -> list[Comment]:
+async def get_comments_for_photo(db: AsyncSession, photo_id: int) -> List[Comment]:
     query = select(Comment).filter(Comment.photo_id == photo_id).order_by(Comment.created_at)
     result = await db.execute(query)
     return result.scalars().all()
 
-async def create_photo(db: Session, photo_create: PhotoCreate, user_id: int, tags: List[str] = None) -> Photo:
+async def create_photo(db: AsyncSession, photo_create: PhotoCreate, user_id: int, tags: Optional[List[str]] = None) -> Photo:
     db_photo = Photo(
         url=photo_create.url,
         description=photo_create.description,
