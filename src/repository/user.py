@@ -1,12 +1,12 @@
 from uuid import uuid4
 
 from fastapi import Depends
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from libgravatar import Gravatar
 
 from src.database.db import get_db
-from src.database.models import User
+from src.database.models import Role, User
 from src.schemas.users import UserSchema
 
 
@@ -19,7 +19,10 @@ async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
 
 
 
+
 async def create_user(body: UserSchema, db: AsyncSession = Depends(get_db)):
+    exist_user = await db.scalar(select(func.count(User.id)))
+    
     avatar = None
     try:
         g = Gravatar(body.email)
@@ -27,11 +30,12 @@ async def create_user(body: UserSchema, db: AsyncSession = Depends(get_db)):
     except Exception as err:
         print(err)
 
-    new_user = User(**body.model_dump(), avatar=avatar)
+    role = Role.admin if exist_user == 0 else Role.user
+
+    new_user = User(**body.model_dump(), avatar=avatar, role=role)
     db.add(new_user)
     await db.commit()
     await db. refresh(new_user)
-    return new_user
 
 async def get_user_by_name(name: str, db: AsyncSession = Depends(get_db)):
     statmnt = select(User).filter_by(username=name)
