@@ -11,7 +11,7 @@ async def create_comment(db: AsyncSession, user_id: int, photo_id: int, comment_
     return new_comment
 
 async def get_comment(db: AsyncSession, comment_id: int):
-    stmt = select(Comment).filter_by(id=comment_id).options(joinedload(Comment.user), joinedload(Comment.photo))
+    stmt = select(Comment).filter_by(id=comment_id, is_deleted=False).options(joinedload(Comment.user), joinedload(Comment.photo))
     result = await db.execute(stmt)
     return result.scalars().first()
 
@@ -27,12 +27,14 @@ async def update_comment(db: AsyncSession, comment_id: int, new_text: str):
 async def delete_comment(db: AsyncSession, comment_id: int):
     comment = await get_comment(db, comment_id)
     if comment:
-        await db.delete(comment)
+        comment.is_deleted = True
+        comment.updated_at = datetime.utcnow()
         await db.commit()
         return comment
     return None
 
 async def get_comments_by_photo(db: AsyncSession, photo_id: int):
-    stmt = select(Comment).filter_by(photo_id=photo_id).options(joinedload(Comment.user))
+    stmt = select(Comment).filter_by(photo_id=photo_id, is_deleted=False).options(joinedload(Comment.user))
     result = await db.execute(stmt)
     return result.scalars().all()
+

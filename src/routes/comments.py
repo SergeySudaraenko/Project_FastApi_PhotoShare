@@ -13,7 +13,6 @@ from src.services.auth_service import auth_service
 
 router = APIRouter(prefix="/comment", tags=["comment"])
 
-
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def post_comment(
     photo_id: int,
@@ -23,7 +22,6 @@ async def post_comment(
 ):
     new_comment = await create_comment(db, current_user["id"], photo_id, comment_text)
     return {"comment_id": new_comment.id, "message": "Comment created successfully"}
-
 
 @router.put("/{comment_id}", status_code=status.HTTP_200_OK)
 async def edit_comment(
@@ -52,9 +50,8 @@ async def edit_comment(
         )
     return {"message": "Comment updated successfully"}
 
-
 @router.delete("/{comment_id}", status_code=status.HTTP_200_OK)
-async def delete_comment(
+async def delete_comment_route(
     comment_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(lambda token: auth_service.get_current_user(token)),
@@ -79,8 +76,10 @@ async def delete_comment(
         )
     return {"message": "Comment deleted successfully"}
 
-
 @router.get("/photo/{photo_id}", response_model=list)
-async def get_comments(photo_id: int, db: AsyncSession = Depends(get_db)):
+async def get_comments(
+    photo_id: int,
+    db: AsyncSession = Depends(get_db)
+):
     comments = await get_comments_by_photo(db, photo_id)
     return comments

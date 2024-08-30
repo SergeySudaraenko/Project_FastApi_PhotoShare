@@ -13,7 +13,7 @@ class CommentCreate(CommentBase):
 
 class CommentUpdate(BaseModel):
     comment_text: Optional[str] = None
-    photo_id: Optional[int] = None
+    
 
 
 class CommentInDBBase(CommentBase):
@@ -22,9 +22,10 @@ class CommentInDBBase(CommentBase):
     updated_at: datetime
     user_id: int
     photo_id: int
+    is_deleted: bool  
 
     class Config:
-        orm_mode = True 
+        orm_mode = True
 
 
 class Comment(CommentInDBBase):

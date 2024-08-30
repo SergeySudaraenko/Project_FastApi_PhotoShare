@@ -19,6 +19,7 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str = Field(min_length=6, max_length=255)
 
+
 class UserDbModel(BaseModel):
     uid: str
     username: str

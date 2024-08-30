@@ -1,6 +1,6 @@
 from typing import Optional
 from uuid import uuid4
-
+from passlib.context import CryptContext
 from fastapi import Depends, HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,9 +17,6 @@ async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
     user = await db.execute(statmnt)
     user = user.scalar_one_or_none()
     return user
-
-
-
 
 async def create_user(body: UserSchema, db: AsyncSession) -> User:
     # Перевірка наявності користувача
@@ -86,3 +83,39 @@ async def update_user(email: str, body: UserSchema, db: AsyncSession = Depends(g
         await db.commit()
         await db.refresh(user)
         return user
+    
+
+
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+async def authenticate_user(email: str, password: str, db: AsyncSession) -> User:
+    user = await get_user_by_email(email, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Account is inactive")
+
+    if not pwd_context.verify(password, user.password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    return user
+
+async def ban_user(email: str, db: AsyncSession):
+    user = await get_user_by_email(email, db)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.is_active = False
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+async def activate_user(email: str, db: AsyncSession):
+    user = await get_user_by_email(email, db)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.is_active = True
+    await db.commit()
+    await db.refresh(user)
+    return user

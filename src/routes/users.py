@@ -1,29 +1,16 @@
-from fastapi import APIRouter, Depends, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-import cloudinary
-import cloudinary.uploader
-from src.services import auth_service
+from src.repository.user import ban_user, activate_user, get_user_by_email
 from src.database.db import get_db
-from src.database.models import User
-from src.repository import user as repositories_users
-from src.config.config import settings
-from src.schemas.users import UserResponse
 
 router = APIRouter(prefix="/users", tags=["users"])
 
+@router.post("/ban/{email}")
+async def ban_user_route(email: str, db: AsyncSession = Depends(get_db)):
+    user = await ban_user(email, db)
+    return {"message": f"User {email} has been banned", "user": user}
 
-# @router.patch('/avatar', response_model=UserResponse)
-# async def update_avatar_user(file: UploadFile = File(), user: User = Depends(auth_service.get_current_user),
-#                              db: AsyncSession = Depends(get_db)):
-#     cloudinary.config(
-#         cloud_name=settings.CLOUDINARY_NAME,
-#         api_key=settings.CLOUDINARY_API_KEY,
-#         api_secret=settings.CLOUDINARY_API_SECRET,
-#         secure=True
-#     )
-
-#     r = cloudinary.uploader.upload(file.file, public_id=f'ContactsApp/{user.username}', overwrite=True)
-#     src_url = cloudinary.CloudinaryImage(f'ContactsApp/{user.username}')\
-#                         .build_url(width=250, height=250, crop='fill', version=r.get('version'))
-#     user = await repositories_users.update_avatar(user.email, src_url, db)
-#     return user
+@router.post("/activate/{email}")
+async def activate_user_route(email: str, db: AsyncSession = Depends(get_db)):
+    user = await activate_user(email, db)
+    return {"message": f"User {email} has been activated", "user": user}

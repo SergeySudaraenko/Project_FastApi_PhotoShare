@@ -98,22 +98,6 @@ async def healthcheker(db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Помилка підключення до бази даних")
 
 
-# @app.on_event("startup")
-# async def startup():
-#     # Перевірка, чи є перший користувач адміністратором
-#     async with get_db() as session:
-#         result = await session.execute(text("SELECT COUNT(*) FROM users"))
-#         count = result.scalar()
-#         if count == 0:
-#             # Створення адміністратора за замовчуванням
-#             admin_user = User(
-#                 username="admin",
-#                 email="admin@example.com",
-#                 password="admin_password",  # Замініть на хешований пароль
-#                 role=Role.admin,
-#             )
-#             session.add(admin_user)
-#             await session.commit()
 
 
 @app.on_event("shutdown")
@@ -122,15 +106,6 @@ async def shutdown():
     pass
 
 
-async def authenticate_user(username: str, password: str, db: AsyncSession):
-    # Перевірка існування користувача і відповідність пароля
-    user = await db.execute(
-        "SELECT * FROM users WHERE username = :username", {"username": username}
-    )
-    user = user.fetchone()
-    if user and auth_service.verify_password(password, user["password"]):
-        return user
-    return None
 
 if __name__ == "__main__":
     uvicorn.run("main:app",host="localhost",port=8000,reload=True)
