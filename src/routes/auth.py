@@ -20,7 +20,8 @@ async def signup(body: UserSchema, bt: BackgroundTasks, request: Request, db: As
     body.password = auth_service.get_password_hash(body.password)
     new_user = await repositories_users.create_user(body, db)
     bt.add_task(send_email, new_user.email, new_user.username, str(request.base_url))
-    return new_user
+    print(new_user)
+    return {"id":new_user.id,"created_at":new_user.created_at,"updated_at":new_user.updated_at,"role":new_user.role,"confirmed":new_user.confirmed,"is_active":new_user.is_active}
 
 
 

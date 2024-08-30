@@ -19,7 +19,7 @@ class SearchParams(BaseModel):
     end_date: Optional[str] = None
 
 
-@router.get("/search", response_model=List[Photo])
+@router.get("/search")#,response_model=List[Photo])
 async def search_photos(params: SearchParams, db: DBSession = Depends(get_db)):
     query = db.query(Photo)
 

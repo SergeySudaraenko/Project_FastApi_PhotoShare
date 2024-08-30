@@ -41,11 +41,11 @@ class UserUpdate(BaseModel):
     avatar: Optional[str] = None
     is_active: Optional[bool] = None
 
-class UserResponse(UserBase):
-    id: str  
+class UserResponse(BaseModel):
+    id: int  
     created_at: datetime
     updated_at: datetime
-    role: Role
+    role: Role|str
     confirmed: Optional[bool] = None
     is_active: bool
 

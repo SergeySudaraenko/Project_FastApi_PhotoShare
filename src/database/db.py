@@ -26,7 +26,7 @@ class DatabaseSessionManager:
         session = self._session_maker()
         try:
             yield session
-        except Exception as err:
+        except ValueError as err:
             print(err)
             await session.rollback()
         finally:

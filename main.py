@@ -1,8 +1,10 @@
+import uvicorn
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
+from src.services import auth_service
 from src.routes import auth, comments, photos, profile, rating, search, users
 from src.config.config import settings
 from src.database.db import get_db
@@ -129,3 +131,6 @@ async def authenticate_user(username: str, password: str, db: AsyncSession):
     if user and auth_service.verify_password(password, user["password"]):
         return user
     return None
+
+if __name__ == "__main__":
+    uvicorn.run("main:app",host="localhost",port=8000,reload=True)
