@@ -17,7 +17,7 @@ async def create_tag(db: AsyncSession, tag_create: TagCreate) -> Tag:
     return db_tag
 
 async def get_tag_by_name(db: AsyncSession, tag_name: str) -> Optional[Tag]:
-    query = select(Tag).filter(Tag.tag_name == tag_name)
+    query = select(Tag).filter(Tag.name == tag_name)
     result = await db.execute(query)
     return result.scalar_one_or_none()
 

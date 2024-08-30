@@ -1,13 +1,10 @@
 from datetime import datetime, timedelta
 from typing import Optional
-
 from fastapi import Depends, HTTPException, status
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from jose import JWTError, jwt
-
-
 from src.database.db import get_db
 from src.repository import user as repository_users
 from src.config.config import settings

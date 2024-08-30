@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 
 # Pydantic Models
 class TagBase(BaseModel):
-    tag_name: str
+    name: str
 
 
 class TagCreate(TagBase):

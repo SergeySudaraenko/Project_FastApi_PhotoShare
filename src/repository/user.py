@@ -1,6 +1,7 @@
+from typing import Optional
 from uuid import uuid4
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from libgravatar import Gravatar
@@ -20,27 +21,35 @@ async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
 
 
 
-async def create_user(body: UserSchema, db: AsyncSession = Depends(get_db)):
-    exist_user = await db.scalar(select(func.count(User.id)))
-    
+async def create_user(body: UserSchema, db: AsyncSession) -> User:
+    # Перевірка наявності користувача
+    exist_user_count = await db.scalar(select(func.count(User.id)).filter(User.email == body.email))
+    if exist_user_count > 0:
+        raise HTTPException(status_code=409, detail="User already exists")
+
+    # Отримання аватара
     avatar = None
     try:
         g = Gravatar(body.email)
         avatar = g.get_image()
     except Exception as err:
-        print(err)
+        print(f"Error getting Gravatar image: {err}")
 
-    role = Role.admin if exist_user == 0 else Role.user
+    # Визначення ролі
+    role = Role.admin if exist_user_count == 0 else Role.user
 
+    # Створення нового користувача
     new_user = User(**body.model_dump(), avatar=avatar, role=role)
     db.add(new_user)
     await db.commit()
-    await db. refresh(new_user)
+    await db.refresh(new_user)
+    
+    return new_user
 
-async def get_user_by_name(name: str, db: AsyncSession = Depends(get_db)):
-    statmnt = select(User).filter_by(username=name)
-    user = await db.execute(statmnt)
-    user = user.scalar_one_or_none()
+async def get_user_by_name(name: str, db: AsyncSession) -> Optional[User]:
+    stmt = select(User).filter_by(username=name)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
     return user
 
 

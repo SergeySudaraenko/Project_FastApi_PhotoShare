@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 
-from src.database.models import Tag
-from src.schemas.search import Photo
+from src.database.models import Photo, Tag
+
 from src.database.db import get_db
 from sqlalchemy.orm import Session as DBSession
 

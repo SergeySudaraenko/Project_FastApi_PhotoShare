@@ -5,6 +5,7 @@ from typing import List
 
 from sqlalchemy import (
     Column,
+    Float,
     String,
     DateTime,
     func,
@@ -70,12 +71,14 @@ class Photo(Base):
     comments: Mapped[List["Comment"]] = relationship("Comment", back_populates="photo")
     ratings: Mapped[List["Rating"]] = relationship("Rating", back_populates="photo")
 
+    average_rating: Mapped[float] = mapped_column(Float, default=0.0)
+
 
 # Модель для тегів
 class Tag(Base):
     __tablename__ = "tags"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    tag_name: Mapped[str] = mapped_column(String(50), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(50), unique=True, index=True)
     photos: Mapped[List["Photo"]] = relationship(
         "Photo", secondary="photo_tag", back_populates="photo_tags"
     )

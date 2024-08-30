@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
 )
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from src.config.config import settings
 
