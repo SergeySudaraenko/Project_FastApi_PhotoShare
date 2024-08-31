@@ -21,8 +21,9 @@ async def signup(body: UserSchema, bt: BackgroundTasks, request: Request, db: As
     new_user = await repositories_users.create_user(body, db)
     bt.add_task(send_email, new_user.email, new_user.username, str(request.base_url))
     print(new_user)
-    return {"id":new_user.id,"created_at":new_user.created_at,"updated_at":new_user.updated_at,"role":new_user.role,"confirmed":new_user.confirmed,"is_active":new_user.is_active}
-
+    return new_user
+    # return {"id": new_user.id, "created_at": new_user.created_at, "updated_at": new_user.updated_at,
+    #         "role": new_user.role, "confirmed": new_user.confirmed, "is_active": new_user.is_active}
 
 
 @router.post("/login", response_model=TokenSchema)
@@ -41,9 +42,8 @@ async def login(body: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = 
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 
-
 @router.get('/refresh_token', response_model=TokenSchema)
-async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(get_refresh_token), 
+async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(get_refresh_token),
                         db: AsyncSession = Depends(get_db)):
     token = credentials.credentials
     email = await auth_service.decode_refresh_token(token)
@@ -58,7 +58,6 @@ async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(get
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 
-
 @router.get('/confirmed_email/{token}')
 async def confirmed_email(token: str, db: AsyncSession = Depends(get_db)):
     email = await auth_service.get_email_from_token(token)
@@ -69,7 +68,6 @@ async def confirmed_email(token: str, db: AsyncSession = Depends(get_db)):
         return {"message": "Your email is already confirmed"}
     await repositories_users.confirmed_email(email, db)
     return {"message": "Email confirmed"}
-
 
 
 @router.post('/request_email')
