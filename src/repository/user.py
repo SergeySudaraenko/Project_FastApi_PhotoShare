@@ -8,8 +8,7 @@ from libgravatar import Gravatar
 
 from src.database.db import get_db
 from src.database.models import Role, User
-from src.schemas.users import UserSchema
-
+from src.schemas.users import UserSchema,UserUpdateSchema
 
 
 async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
@@ -17,6 +16,7 @@ async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
     user = await db.execute(statmnt)
     user = user.scalar_one_or_none()
     return user
+
 
 async def create_user(body: UserSchema, db: AsyncSession) -> User:
     # Перевірка наявності користувача
@@ -40,8 +40,9 @@ async def create_user(body: UserSchema, db: AsyncSession) -> User:
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
-    
+
     return new_user
+
 
 async def get_user_by_name(name: str, db: AsyncSession) -> Optional[User]:
     stmt = select(User).filter_by(username=name)
@@ -55,12 +56,10 @@ async def update_token(user: User, token: str | None, db: AsyncSession):
     await db.commit()
 
 
-
 async def confirmed_email(email: str, db: AsyncSession):
     user = await get_user_by_email(email, db)
     user.confirmed = True
     await db.commit()
-
 
 
 async def update_avatar(email, url: str, db: AsyncSession):
@@ -71,23 +70,23 @@ async def update_avatar(email, url: str, db: AsyncSession):
     return user
 
 
-async def update_user(email: str, body: UserSchema, db: AsyncSession = Depends(get_db)):
-    user = await get_user_by_email(email, db)
+async def update_user(name: str, body: UserUpdateSchema, db):
+    user = await get_user_by_name(name, db)
+
     if user:
         if body.username:
             user.username = body.username
         if body.email:
             user.email = body.email
-        if body.password:
-            user.password = body.password
+        if body.avatar:
+            user.avatar = body.avatar
         await db.commit()
         await db.refresh(user)
         return user
-    
-
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 
 async def authenticate_user(email: str, password: str, db: AsyncSession) -> User:
     user = await get_user_by_email(email, db)
@@ -102,6 +101,7 @@ async def authenticate_user(email: str, password: str, db: AsyncSession) -> User
 
     return user
 
+
 async def ban_user(email: str, db: AsyncSession):
     user = await get_user_by_email(email, db)
     if not user:
@@ -110,6 +110,7 @@ async def ban_user(email: str, db: AsyncSession):
     await db.commit()
     await db.refresh(user)
     return user
+
 
 async def activate_user(email: str, db: AsyncSession):
     user = await get_user_by_email(email, db)
