@@ -13,15 +13,27 @@ from src.services.auth_service import auth_service
 
 router = APIRouter(prefix="/comment", tags=["comment"])
 
+
+async def get_current_user_from_token(token: str):
+    user = await auth_service.get_current_user(token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    return user
+
+
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def post_comment(
     photo_id: int,
     comment_text: str,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(lambda token: auth_service.get_current_user(token)),
+    current_user: dict = Depends(get_current_user_from_token),
 ):
-    new_comment = await create_comment(db, current_user["id"], photo_id, comment_text)
-    return {"comment_id": new_comment.id, "message": "Comment created successfully"}
+    try:
+        new_comment = await create_comment(db, current_user["id"], photo_id, comment_text)
+        return {"comment_id": new_comment.id, "message": "Comment created successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="An error occurred while creating the comment")
+
 
 @router.put("/{comment_id}", status_code=status.HTTP_200_OK)
 async def edit_comment(

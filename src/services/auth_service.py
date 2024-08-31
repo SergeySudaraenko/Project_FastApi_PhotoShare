@@ -9,6 +9,10 @@ from src.database.db import get_db
 from src.repository import user as repository_users
 from src.config.config import settings
 from src.database.models import User
+import logging
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
 
 class Auth:
@@ -21,8 +25,6 @@ class Auth:
 
     def get_password_hash(self, password: str):
         return self.pwd_context.hash(password)
-
-    oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
     async def create_access_token(
             self, data: dict, expires_delta: Optional[float] = None
@@ -84,20 +86,25 @@ class Auth:
         )
 
         try:
-            # Decode JWT
+            # Декодируем JWT
             payload = jwt.decode(token, self.SECRET_KEY, algorithms=[self.ALGORITHM])
             if payload["scope"] == "access_token":
                 email = payload["sub"]
                 if email is None:
+                    logging.error("Email not found in JWT payload")
                     raise credentials_exception
             else:
+                logging.error("Invalid token scope")
                 raise credentials_exception
-        except JWTError:
+        except JWTError as e:
+            logging.error(f"JWT decoding error: {str(e)}")
             raise credentials_exception
 
         user = await repository_users.get_user_by_email(email, db)
         if user is None:
+            logging.error(f"User not found with email: {email}")
             raise credentials_exception
+
         return user
 
     def create_email_token(self, data: dict):
