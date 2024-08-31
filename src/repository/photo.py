@@ -3,6 +3,25 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from src.database.models import Photo, Tag
 from src.repository.crud import get_or_create
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from src.database.models import Photo
+from src.schemas.photos import PhotoCreate
+
+async def create_photo(db: AsyncSession, photo: PhotoCreate) -> Photo:
+    db_photo = Photo(
+        url=photo.url,
+        description=photo.description,
+        owner_id=photo.owner_id
+    )
+    
+    async with db.begin():
+        db.add(db_photo)
+
+    await db.refresh(db_photo)
+    
+    return db_photo
+
 
 async def create_photo_with_tags(db: AsyncSession, url: str, description: str, owner_id: int, tag_names: list):
     # Створення нового фото

@@ -9,8 +9,10 @@ class PhotoBase(BaseModel):
     description: Optional[str] = None
 
 
-class PhotoCreate(PhotoBase):
-    tags: Optional[List[str]] = None
+class PhotoCreate(BaseModel):
+    url: str
+    description: Optional[str] = None
+    owner_id: int
 
 
 class PhotoInDBBase(PhotoBase):
