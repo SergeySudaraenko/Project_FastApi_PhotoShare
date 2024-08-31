@@ -8,7 +8,7 @@ from jose import JWTError, jwt
 from src.database.db import get_db
 from src.repository import user as repository_users
 from src.config.config import settings
-
+from src.database.models import User
 
 class Auth:
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -91,7 +91,7 @@ class Auth:
                     raise credentials_exception
             else:
                 raise credentials_exception
-        except JWTError as e:
+        except JWTError:
             raise credentials_exception
 
         user = await repository_users.get_user_by_email(email, db)
@@ -111,12 +111,14 @@ class Auth:
             payload = jwt.decode(token, self.SECRET_KEY, algorithms=[self.ALGORITHM])
             email = payload["sub"]
             return email
-        except JWTError as e:
-            print(e)
+        except JWTError:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Invalid token for email verification",
             )
 
+    async def is_admin(self, current_user: User = Depends(get_current_user)):
+        if not current_user.is_admin:
+            raise HTTPException(status_code=403, detail="Not enough permissions")
 
 auth_service = Auth()
