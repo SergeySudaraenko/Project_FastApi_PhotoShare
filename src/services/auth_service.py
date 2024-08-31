@@ -10,6 +10,7 @@ from src.repository import user as repository_users
 from src.config.config import settings
 from src.database.models import User
 
+
 class Auth:
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     SECRET_KEY = settings.SECRET_KEY_JWT
@@ -24,7 +25,7 @@ class Auth:
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
     async def create_access_token(
-        self, data: dict, expires_delta: Optional[float] = None
+            self, data: dict, expires_delta: Optional[float] = None
     ):
         to_encode = data.copy()
         if expires_delta:
@@ -40,7 +41,7 @@ class Auth:
         return encoded_access_token
 
     async def create_refresh_token(
-        self, data: dict, expires_delta: Optional[float] = None
+            self, data: dict, expires_delta: Optional[float] = None
     ):
         to_encode = data.copy()
         if expires_delta:
@@ -74,7 +75,7 @@ class Auth:
             )
 
     async def get_current_user(
-        self, token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)
+            self, token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)
     ):
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -120,5 +121,6 @@ class Auth:
     async def is_admin(self, current_user: User = Depends(get_current_user)):
         if not current_user.is_admin:
             raise HTTPException(status_code=403, detail="Not enough permissions")
+
 
 auth_service = Auth()

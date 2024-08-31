@@ -28,6 +28,7 @@ async def signup(body: UserSchema, bt: BackgroundTasks, request: Request, db: As
 
 @router.post("/login", response_model=TokenSchema)
 async def login(body: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
+    print(body.username, body.password)
     user = await repositories_users.get_user_by_email(body.username, db)
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=messages.INVALID_EMAIL)
@@ -44,7 +45,7 @@ async def login(body: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = 
 
 @router.get('/refresh_token', response_model=TokenSchema)
 async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(get_refresh_token),
-                        db: AsyncSession = Depends(get_db)):
+                        db: AsyncSession = Depends(get_db), ):
     token = credentials.credentials
     email = await auth_service.decode_refresh_token(token)
     user = await repositories_users.get_user_by_email(email, db)
