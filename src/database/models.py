@@ -91,26 +91,27 @@ photo_tag = Table(
     Column("photo_id", Integer, ForeignKey("photos.id")),
     Column("tag_id", Integer, ForeignKey("tags.id")),
 )
-
-
-# Модель для коментарів
+# Модель коментів
 class Comment(Base):
     __tablename__ = "comments"
+    
     id: Mapped[int] = mapped_column(primary_key=True)
     comment_text: Mapped[str] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=func.now(), onupdate=func.now()
     )
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)  
+    
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("users.id"), nullable=False
     )
     user: Mapped["User"] = relationship("User", backref="comments")
+    
     photo_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("photos.id"), nullable=False
     )
     photo: Mapped["Photo"] = relationship("Photo", back_populates="comments")
-
 
 # Модель для рейтингів
 class Rating(Base):
