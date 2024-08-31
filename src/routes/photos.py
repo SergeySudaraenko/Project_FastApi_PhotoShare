@@ -39,8 +39,8 @@ async def update_photo_description(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    if not current_user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    # if not current_user:
+    #     raise HTTPException(status_code=401, detail="Not authenticated")
 
     async with db as session:
         
@@ -79,8 +79,8 @@ async def delete_photo(
         if not photo:
             raise HTTPException(status_code=404, detail="Photo not found")
         
-        if current_user is None:
-            raise HTTPException(status_code=401, detail="Not authenticated")
+        # if current_user is None:
+        #     raise HTTPException(status_code=401, detail="Not authenticated")
 
         if photo.owner_id != current_user.id and not current_user.is_admin:
             raise HTTPException(status_code=403, detail="Not enough permissions")
