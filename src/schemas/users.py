@@ -32,16 +32,10 @@ class UserDbModel(BaseModel):
     role: str
     created_at: datetime
 
-<<<<<<< HEAD
-
-class UserResponseSchema(BaseModel):
-    user: UserDbModel
-=======
     class Config:
         from_attributes = True
         orm_mode = True
 
->>>>>>> master
 
 
 class UserUpdateSchema(BaseModel):
@@ -59,11 +53,7 @@ class UserUpdate(BaseModel):
 
 
 class UserResponse(BaseModel):
-<<<<<<< HEAD
     uid: str
-=======
-    id: int
->>>>>>> master
     created_at: datetime
     updated_at: datetime
     role: Role | str

@@ -1,41 +1,16 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import Column, DateTime, Integer, String, ForeignKey, func
 from sqlalchemy.orm import relationship
 
 
-# Pydantic Models
-class TagBase(BaseModel):
+class TagCreate(BaseModel):
     name: str
 
-
-class TagCreate(TagBase):
-    pass
+    model_config = ConfigDict(from_attributes=True)
 
 
-class TagInDBBase(TagBase):
+class TagResponse(BaseModel):
     id: int
+    name: str
 
-    class Config:
-        orm_mode = True
-
-
-class TagResponse(TagInDBBase):
-    pass
-
-
-class PhotoTagBase(BaseModel):
-    photo_id: int
-    tag_id: int
-
-
-class PhotoTagCreate(PhotoTagBase):
-    pass
-
-
-class PhotoTagInDBBase(PhotoTagBase):
-    class Config:
-        orm_mode = True
-
-
-class PhotoTagResponse(PhotoTagInDBBase):
-    pass
+    model_config = ConfigDict(from_attributes=True)

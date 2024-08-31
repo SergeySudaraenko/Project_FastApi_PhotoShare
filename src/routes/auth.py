@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends, status, Security, BackgroundTasks, Request
 from fastapi.security import OAuth2PasswordRequestForm, HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.database.models import User
 from src.services.auth_service import auth_service
 from src.database.db import get_db
 from src.repository import user as repositories_users
@@ -22,8 +24,6 @@ async def signup(body: UserSchema, bt: BackgroundTasks, request: Request, db: As
     bt.add_task(send_email, new_user.email, new_user.username, str(request.base_url))
     print(new_user)
     return new_user
-    # return {"id": new_user.id, "created_at": new_user.created_at, "updated_at": new_user.updated_at,
-    #         "role": new_user.role, "confirmed": new_user.confirmed, "is_active": new_user.is_active}
 
 
 @router.post("/login", response_model=TokenSchema)
@@ -45,7 +45,7 @@ async def login(body: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = 
 
 @router.get('/refresh_token', response_model=TokenSchema)
 async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(get_refresh_token),
-                        db: AsyncSession = Depends(get_db), ):
+                        db: AsyncSession = Depends(get_db), current_user: User = Depends(auth_service.get_current_user)):
     token = credentials.credentials
     email = await auth_service.decode_refresh_token(token)
     user = await repositories_users.get_user_by_email(email, db)
@@ -55,6 +55,7 @@ async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(get
 
     access_token = await auth_service.create_access_token(data={"sub": email})
     refresh_token = await auth_service.create_refresh_token(data={"sub": email})
+    user.refresh_token = refresh_token
     await repositories_users.update_token(user, refresh_token, db)
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
