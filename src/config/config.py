@@ -2,8 +2,8 @@ from typing import Optional
 from pydantic import Field, field_validator, ConfigDict
 from pydantic_settings import BaseSettings
 
+
 class Settings(BaseSettings):
-   
     DB_URL: str = "postgresql+asyncpg://postgres:567234@localhost:5432/ProjectDB"
     SECRET_KEY_JWT: str = "1234567890"
     ALGORITHM: str = "HS256"
@@ -19,8 +19,8 @@ class Settings(BaseSettings):
     CLOUDINARY_API_KEY: str
     CLOUDINARY_API_SECRET: str
 
-    @field_validator("ALGORITHM")
     @classmethod
+    @field_validator("ALGORITHM")
     def validate_algorithm(cls, v):
         if v not in ["HS256", "HS512"]:
             raise ValueError("Algorithm must be HS256 or HS512")
@@ -28,6 +28,5 @@ class Settings(BaseSettings):
 
     model_config = ConfigDict(extra="ignore", env_file=".env", env_file_encoding="utf-8")
 
-    
 
 settings = Settings()

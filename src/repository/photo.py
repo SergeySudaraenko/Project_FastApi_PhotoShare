@@ -8,19 +8,17 @@ from sqlalchemy.future import select
 from src.database.models import Photo
 from src.schemas.photos import PhotoCreate
 
+
 async def create_photo(db: AsyncSession, photo: PhotoCreate) -> Photo:
-    db_photo = Photo(
+    new_photo = Photo(
         url=photo.url,
         description=photo.description,
         owner_id=photo.owner_id
     )
-    
-    async with db.begin():
-        db.add(db_photo)
-
-    await db.refresh(db_photo)
-    
-    return db_photo
+    db.add(new_photo)
+    await db.commit()
+    await db.refresh(new_photo)
+    return new_photo
 
 
 async def create_photo_with_tags(db: AsyncSession, url: str, description: str, owner_id: int, tag_names: list):
