@@ -24,17 +24,18 @@ async def create_photo_with_tags(db: AsyncSession, url: str, description: str, o
     # Створення нового фото
     new_photo = Photo(url=url, description=description, owner_id=owner_id)
     db.add(new_photo)
-    
+
     # Перевірка і додавання тегів
     tags = []
     for tag_name in tag_names:
         tag = await get_or_create(db, Tag, tag_name=tag_name)
         tags.append(tag)
-    
+
     # Додавання тегів до фото
     new_photo.photo_tags = tags
     await db.commit()
     return new_photo
+
 
 async def get_or_create(db: AsyncSession, model, **kwargs):
     async with db.begin():
@@ -46,3 +47,23 @@ async def get_or_create(db: AsyncSession, model, **kwargs):
             db.add(instance)
             await db.commit()
         return instance
+
+
+async def get_photo_by_id(photo_id: int, db: AsyncSession):
+    result = await db.execute(select(Photo).filter(Photo.id == int(photo_id)))
+    photo = result.scalar_one_or_none()
+    return photo
+
+
+async def get_photo_by_url(photo_url: int, db: AsyncSession):
+    result = await db.execute(select(Photo).filter(Photo.url == photo_url))
+    photo = result.scalar_one_or_none()
+    return photo
+
+
+async def create(photo_url: str, photo, db: AsyncSession):
+    image = Photo(url=photo_url, owner_id=photo.owner_id, description=f'{photo.description} - transformed')
+    db.add(image)
+    await db.commit()
+    await db.refresh(image)
+    return image
