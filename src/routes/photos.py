@@ -1,14 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.database.db import get_db
-from src.repository.photo import create_photo_with_tags
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
-from sqlalchemy.orm import Session
 from src.database.db import get_db
 from src.schemas.photos import PhotoCreate, PhotoResponse
 from src.repository.photo import create_photo
 from sqlalchemy import select
-
 from src.database.models import Photo, User
 from src.services.auth_service import auth_service
 from src.config.config import settings
@@ -37,8 +32,7 @@ async def update_photo_description(
         description: str,
         db: AsyncSession = Depends(get_db), current_user: User = Depends(auth_service.get_current_user)
 ):
-    # if not current_user:
-    #     raise HTTPException(status_code=401, detail="Not authenticated")
+  
 
     async with db as session:
 
@@ -68,8 +62,7 @@ async def delete_photo(photo_id: int, db: AsyncSession = Depends(get_db), curren
         if not photo:
             raise HTTPException(status_code=404, detail="Photo not found")
 
-        # if current_user is None:
-        #     raise HTTPException(status_code=401, detail="Not authenticated")
+       
 
         if photo.owner_id != current_user.id and not current_user.is_admin:
             raise HTTPException(status_code=403, detail="Not enough permissions")
@@ -103,8 +96,4 @@ async def upload_photo(
     new_photo = await create_photo(db=db, photo=photo_data)
     return new_photo
 
-"""
-1)Додати схему вілідації-Клас в схемах
-2)Збережений файл треба заливати на клаудінарі і посиланя з клаудінарі зберігати в бд.
-3)Теги переробити.
-"""
+

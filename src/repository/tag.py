@@ -1,50 +1,61 @@
-from sqlalchemy.orm import Session
-from src.database.models import Photo, Tag
+from typing import Optional, List
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from src.database.models import Tag, Photo
 from src.schemas.tags import TagCreate
 from fastapi import HTTPException, status
 
-def create_tag(db: Session, tag: TagCreate):
-    db_tag = db.query(Tag).filter_by(tag_name=tag.name).first()
-    if db_tag:
-        return db_tag
-
-    db_tag = Tag(tag_name=tag.name)
+async def create_tag(db: AsyncSession, tag_create: TagCreate) -> Tag:
+    db_tag = Tag(tag_name=tag_create.tag_name)
     db.add(db_tag)
-    db.commit()
-    db.refresh(db_tag)
-
+    await db.commit()
+    await db.refresh(db_tag)
     return db_tag
 
-def get_tags(db: Session):
-    return db.query(Tag).all()
+async def get_tag_by_name(db: AsyncSession, tag_name: str) -> Optional[Tag]:
+    query = select(Tag).filter(Tag.tag_name == tag_name)
+    result = await db.execute(query)
+    return result.scalar_one_or_none()
 
-def associate_tag_with_photo(db: Session, photo_id: int, tag_name: str):
+async def get_tags(db: AsyncSession) -> List[Tag]:
+    query = select(Tag)
+    result = await db.execute(query)
+    return result.scalars().all()
+
+async def associate_tag_with_photo(db: AsyncSession, photo_id: int, tag_name: str) -> dict:
     # Знайти фото за ID
-    photo = db.query(Photo).filter_by(id=photo_id).first()
+    photo_query = select(Photo).filter(Photo.id == photo_id)
+    photo_result = await db.execute(photo_query)
+    photo = photo_result.scalar_one_or_none()
+    
     if not photo:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Photo not found."
+            detail="Фото не знайдено."
         )
 
     # Знайти тег за ім'ям або створити його
-    tag = db.query(Tag).filter_by(tag_name=tag_name).first()
+    tag = await get_tag_by_name(db, tag_name)
     if not tag:
-        tag = create_tag(db, TagCreate(name=tag_name))
+        tag_create = TagCreate(tag_name=tag_name)
+        tag = await create_tag(db, tag_create)
 
     # Додати тег до фото через relationship
     if tag not in photo.photo_tags:
         photo.photo_tags.append(tag)  # Використовуємо relationship для асоціації
-        db.commit()
+        await db.commit()
 
-    return {"detail": "Tag associated with photo successfully."}
+    return {"detail": "Тег успішно асоційований з фото."}
 
-def get_tags_for_photo(db: Session, photo_id: int):
+async def get_tags_for_photo(db: AsyncSession, photo_id: int) -> List[Tag]:
     # Повернути теги для вказаного фото через асоціативну таблицю
-    photo = db.query(Photo).filter(Photo.id == photo_id).first()
+    photo_query = select(Photo).filter(Photo.id == photo_id)
+    photo_result = await db.execute(photo_query)
+    photo = photo_result.scalar_one_or_none()
+    
     if not photo:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Photo not found."
+            detail="Фото не знайдено."
         )
     return photo.photo_tags  # Отримуємо пов'язані теги напряму
