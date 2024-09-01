@@ -18,3 +18,8 @@ class PhotoResponse(BaseModel):
     owner_id: int
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PhotoTransformModel(BaseModel):
+    id: int
+    transformation: str = "standard"
