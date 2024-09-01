@@ -1,6 +1,4 @@
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import Column, DateTime, Integer, String, ForeignKey, func
-from sqlalchemy.orm import relationship
 
 
 class TagCreate(BaseModel):

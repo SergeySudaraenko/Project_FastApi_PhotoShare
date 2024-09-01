@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.routes.profile import get_current_user
 from src.database.db import get_db
 from src.repository.photo import create_photo_with_tags
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile

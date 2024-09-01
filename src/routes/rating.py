@@ -3,11 +3,12 @@ from pydantic import BaseModel
 from typing import List
 from sqlalchemy.orm import Session as DBSession
 from sqlalchemy import func, select
-from src.routes.profile import get_current_user
 from src.database.models import Photo, User, Rating
 from src.database.db import get_db
 from src.schemas.search import PhotoRating
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.services.auth_service import auth_service
 
 router = APIRouter(prefix="/rating", tags=["rating"])
 
@@ -22,7 +23,7 @@ class RatingDelete(BaseModel):
 async def rate_photo(
     rating: RatingCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(auth_service.get_current_user),
 ):
     print(current_user)
     
@@ -59,7 +60,7 @@ async def rate_photo(
 async def delete_rating(
     rating: RatingDelete,
     db: DBSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(auth_service.get_current_user)
 ):
     rating_to_delete = (
         db.query(Rating)
