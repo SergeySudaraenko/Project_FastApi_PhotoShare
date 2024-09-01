@@ -11,10 +11,6 @@ from src.services.auth_service import auth_service
 router = APIRouter(prefix="/user", tags=["user"])
 
 
-def get_current_user():
-    pass
-
-
 @router.get("/me", response_model=UserDbModel)
 async def get_my_profile(current_user: User = Depends(auth_service.get_current_user)):
     return current_user

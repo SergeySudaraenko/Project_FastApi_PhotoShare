@@ -20,16 +20,14 @@ app.add_middleware(
 )
 
 
-
-
 # Включення маршрутів
 app.include_router(auth.router, prefix="/api")
-app.include_router(comments.router, prefix="/api")
-app.include_router(profile.router, prefix="/api")
-app.include_router(rating.router, prefix="/api")
-app.include_router(search.router, prefix="/api")
-app.include_router(photos.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
+app.include_router(profile.router, prefix="/api")
+app.include_router(photos.router, prefix="/api")
+app.include_router(search.router, prefix="/api")
+app.include_router(comments.router, prefix="/api")
+app.include_router(rating.router, prefix="/api")
 
 
 @app.get("/")
@@ -52,14 +50,11 @@ async def healthcheker(db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Помилка підключення до бази даних")
 
 
-
-
 @app.on_event("shutdown")
 async def shutdown():
     # Очищення ресурсів
     pass
 
 
-
 if __name__ == "__main__":
-    uvicorn.run("main:app",host="localhost",port=8000,reload=True)
+    uvicorn.run("main:app", host="localhost", port=8000, reload=True)

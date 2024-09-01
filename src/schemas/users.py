@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from datetime import datetime
 from typing import Optional
 from src.schemas.auth import Role
@@ -32,17 +32,13 @@ class UserDbModel(BaseModel):
     role: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-        orm_mode = True
-
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserUpdateSchema(BaseModel):
     username: Optional[str] = Field(None, max_length=50)
     email: Optional[EmailStr]
     avatar: Optional[str]
-
 
 
 class UserUpdate(BaseModel):
@@ -66,5 +62,4 @@ class UserSchema(BaseModel):
     email: EmailStr
     password: str = Field(min_length=6, max_length=255)
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)

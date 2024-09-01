@@ -1,8 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import datetime
-from src.database.models import Tag, Comment, Rating
-from src.schemas.tags import TagResponse
 
 
 class PhotoCreate(BaseModel):

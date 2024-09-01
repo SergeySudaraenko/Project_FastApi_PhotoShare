@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import datetime
 
@@ -6,27 +6,31 @@ from datetime import datetime
 class TagBase(BaseModel):
     name: str
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
+
 
 class TagCreate(TagBase):
     pass
 
+
 class Tag(TagBase):
     id: int
+
 
 class PhotoBase(BaseModel):
     description: Optional[str] = None
     tags: Optional[List[str]] = []
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
+
 
 class PhotoCreate(PhotoBase):
     pass
 
+
 class PhotoUpdate(PhotoBase):
     pass
+
 
 class Photo(PhotoBase):
     id: int
@@ -50,8 +54,8 @@ class PhotoRating(BaseModel):
     photo_id: int
     rating: int
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
+
 
 class PhotoRatingUpdate(PhotoRating):
     pass
@@ -60,14 +64,16 @@ class PhotoRatingUpdate(PhotoRating):
 class CommentBase(BaseModel):
     text: str
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
+
 
 class CommentCreate(CommentBase):
     pass
 
+
 class CommentUpdate(CommentBase):
     pass
+
 
 class Comment(CommentBase):
     id: int
@@ -84,15 +90,14 @@ class UserProfile(BaseModel):
     registered_at: datetime
     photo_count: int
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
+
 
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None
     email: Optional[str] = None
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SearchFilters(BaseModel):
@@ -102,6 +107,7 @@ class SearchFilters(BaseModel):
     max_rating: Optional[int] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
+
 
 class SearchResponse(BaseModel):
     id: int
@@ -113,5 +119,4 @@ class SearchResponse(BaseModel):
     tags: List[str] = []
     average_rating: Optional[float] = None
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
