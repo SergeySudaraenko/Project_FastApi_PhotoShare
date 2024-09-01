@@ -37,10 +37,12 @@ class UserDbModel(BaseModel):
         orm_mode = True
 
 
+
 class UserUpdateSchema(BaseModel):
     username: Optional[str] = Field(None, max_length=50)
     email: Optional[EmailStr]
     avatar: Optional[str]
+
 
 
 class UserUpdate(BaseModel):
@@ -51,7 +53,7 @@ class UserUpdate(BaseModel):
 
 
 class UserResponse(BaseModel):
-    id: int
+    uid: str
     created_at: datetime
     updated_at: datetime
     role: Role | str

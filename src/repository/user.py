@@ -19,10 +19,9 @@ async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
 
 
 async def create_user(body: UserSchema, db: AsyncSession) -> User:
-    # Перевірка наявності користувача
-    exist_user_count = await db.scalar(select(func.count(User.id)).filter(User.email == body.email))
-    if exist_user_count > 0:
-        raise HTTPException(status_code=409, detail="User already exists")
+    # Перевірка кількості користувачів зареєстрованих в БД
+    result = await db.execute(select(func.count()).select_from(User))
+    total_users_count = result.scalar()
 
     # Отримання аватара
     avatar = None
@@ -33,7 +32,7 @@ async def create_user(body: UserSchema, db: AsyncSession) -> User:
         print(f"Error getting Gravatar image: {err}")
 
     # Визначення ролі
-    role = Role.admin if exist_user_count == 0 else Role.user
+    role = Role.admin if total_users_count == 0 else Role.user
 
     # Створення нового користувача
     new_user = User(**body.model_dump(), avatar=avatar, role=role)
