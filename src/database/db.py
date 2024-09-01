@@ -1,10 +1,13 @@
 import contextlib
+from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     AsyncEngine,
     create_async_engine,
     async_sessionmaker,
 )
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from src.config.config import settings
 
@@ -32,7 +35,7 @@ class DatabaseSessionManager:
 
 sessionmanager = DatabaseSessionManager(settings.DB_URL)
 
-@contextlib.asynccontextmanager
-async def get_db():
-    async with AsyncSession() as session:
+
+async def get_db() -> AsyncSession:
+    async with sessionmanager.session() as session:
         yield session
