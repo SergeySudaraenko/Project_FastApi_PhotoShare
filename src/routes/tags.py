@@ -4,7 +4,7 @@ from src.services.auth_service import auth_service
 from src.database.db import get_db
 from src.database.models import Photo, User, Tag
 from src.repository import user as repositories_users
-from src.schemas.tags import TagCreate, TagResponse, TagUpdate
+from src.schemas.tags import TagCreate, TagResponse
 from src.schemas.tags import PhotoResponse
 from src.services.email import send_email
 from src.config import messages

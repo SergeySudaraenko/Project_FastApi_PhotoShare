@@ -24,7 +24,7 @@ class TagRepository:
         if tag:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tag already exists")
         new_tag = Tag(
-            **tag_create.model_dump()
+            **tag_create.model_dump())
           
         self.session.add(new_tag)
         await self.session.commit()
