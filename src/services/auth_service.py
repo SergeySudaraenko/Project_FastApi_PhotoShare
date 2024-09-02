@@ -104,8 +104,17 @@ class Auth:
         if user is None:
             logging.error(f"User not found with email: {email}")
             raise credentials_exception
+    
+    # Перевірка на БАН
+        if not user.is_active:
+            logging.error(f"User {email} is banned or inactive")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User is banned or inactive"
+            )
 
         return user
+       
 
     def create_email_token(self, data: dict):
         to_encode = data.copy()
