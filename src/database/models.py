@@ -15,7 +15,7 @@ from sqlalchemy import (
     Boolean,
     Table,
 )
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from sqlalchemy.orm import DeclarativeBase
 
 
@@ -91,27 +91,30 @@ photo_tag = Table(
     Column("photo_id", Integer, ForeignKey("photos.id")),
     Column("tag_id", Integer, ForeignKey("tags.id")),
 )
+
+
 # Модель коментів
 class Comment(Base):
     __tablename__ = "comments"
-    
+
     id: Mapped[int] = mapped_column(primary_key=True)
     comment_text: Mapped[str] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=func.now(), onupdate=func.now()
     )
-    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)  
-    
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("users.id"), nullable=False
     )
     user: Mapped["User"] = relationship("User", backref="comments")
-    
+
     photo_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("photos.id"), nullable=False
     )
     photo: Mapped["Photo"] = relationship("Photo", back_populates="comments")
+
 
 # Модель для рейтингів
 class Rating(Base):
@@ -127,4 +130,9 @@ class Rating(Base):
 
     photo: Mapped["Photo"] = relationship("Photo", back_populates="ratings")
     user: Mapped["User"] = relationship("User")
-# 
+
+    @validates('score')
+    def validate_score(self, value):
+        if not (1 <= value <= 5):
+            raise ValueError('Score must be greater or equal 1 and less than 5.')
+        return value
