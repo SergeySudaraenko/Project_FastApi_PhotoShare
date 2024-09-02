@@ -26,6 +26,7 @@ python-jose = "^3.3.0"
 fastapi-mail = "^1.4.1"
 python-multipart = "^0.0.9"
 bcrypt = "^4.2.0"
+starlette = "^0.38.4"
 
 
 [build-system]

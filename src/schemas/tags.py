@@ -1,14 +1,13 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 
-# Pydantic Models
-class TagBase(BaseModel):
+class TagCreate(BaseModel):
     name: str
 
+    model_config = ConfigDict(from_attributes=True)
 
-class TagCreate(TagBase):
-    pass
+
 
 
 class TagUpdate(TagBase):
@@ -16,7 +15,10 @@ class TagUpdate(TagBase):
 
 
 class TagResponse(TagBase):
+
+
     id: int
+    name: str
 
     class Config:
         orm_mode = True
@@ -36,19 +38,4 @@ class PhotoResponse(PhotoBase):
 
 
 
-# class PhotoTagBase(BaseModel):
-#     photo_id: int
-#     tag_id: int
-#
-#
-# class PhotoTagCreate(PhotoTagBase):
-#     pass
-#
-#
-# class PhotoTagInDBBase(PhotoTagBase):
-#     class Config:
-#         orm_mode = True
-#
-#
-# class PhotoTagResponse(PhotoTagInDBBase):
-#     pass
+

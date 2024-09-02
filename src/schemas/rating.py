@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, ConfigDict
 from decimal import Decimal
 from typing import Optional
+
 
 class RatingBase(BaseModel):
     score: Decimal = Field(..., description="The rating score between 0 and 6")
@@ -11,16 +12,18 @@ class RatingBase(BaseModel):
             raise ValueError('Score must be greater than 0 and less than 6.')
         return score
 
+
 class RatingCreate(RatingBase):
     photo_id: Optional[int] = None
+
 
 class RatingInDBBase(RatingBase):
     id: int
     user_id: int
     photo_id: int
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
+
 
 class RatingResponse(RatingInDBBase):
     pass

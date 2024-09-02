@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
 
@@ -13,7 +13,6 @@ class CommentCreate(CommentBase):
 
 class CommentUpdate(BaseModel):
     comment_text: Optional[str] = None
-    
 
 
 class CommentInDBBase(CommentBase):
@@ -24,8 +23,7 @@ class CommentInDBBase(CommentBase):
     photo_id: int
     is_deleted: bool  
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Comment(CommentInDBBase):

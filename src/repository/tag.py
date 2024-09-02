@@ -1,7 +1,7 @@
+from typing import Optional, List
 from fastapi import HTTPException, status
 from src.database.models import Photo, Tag, photo_tag
 from src.schemas.tags import TagCreate
-
 from sqlalchemy import select,  Date, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -25,7 +25,7 @@ class TagRepository:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tag already exists")
         new_tag = Tag(
             **tag_create.model_dump()
-        )
+          
         self.session.add(new_tag)
         await self.session.commit()
         await self.session.refresh(new_tag)

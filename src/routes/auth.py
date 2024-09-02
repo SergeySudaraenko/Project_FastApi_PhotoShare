@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends, status, Security, BackgroundTasks, Request
 from fastapi.security import OAuth2PasswordRequestForm, HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.database.models import User
 from src.services.auth_service import auth_service
 from src.database.db import get_db
 from src.repository import user as repositories_users
@@ -21,12 +23,12 @@ async def signup(body: UserSchema, bt: BackgroundTasks, request: Request, db: As
     new_user = await repositories_users.create_user(body, db)
     bt.add_task(send_email, new_user.email, new_user.username, str(request.base_url))
     print(new_user)
-    return {"id":new_user.id,"created_at":new_user.created_at,"updated_at":new_user.updated_at,"role":new_user.role,"confirmed":new_user.confirmed,"is_active":new_user.is_active}
-
+    return new_user
 
 
 @router.post("/login", response_model=TokenSchema)
 async def login(body: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
+    print(body.username, body.password)
     user = await repositories_users.get_user_by_email(body.username, db)
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=messages.INVALID_EMAIL)
@@ -34,6 +36,9 @@ async def login(body: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = 
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=messages.NOT_CONFIRMED_EMAIL)
     if not auth_service.verify_password(body.password, user.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=messages.INVALID_PASSWORD)
+    # Перевірка на бан
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User is banned or inactive")
     # JWT
     access_token = await auth_service.create_access_token(data={"sub": user.email})
     refresh_token = await auth_service.create_refresh_token(data={"sub": user.email})
@@ -41,10 +46,9 @@ async def login(body: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = 
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 
-
 @router.get('/refresh_token', response_model=TokenSchema)
-async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(get_refresh_token), 
-                        db: AsyncSession = Depends(get_db)):
+async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(get_refresh_token),
+                        db: AsyncSession = Depends(get_db), current_user: User = Depends(auth_service.get_current_user)):
     token = credentials.credentials
     email = await auth_service.decode_refresh_token(token)
     user = await repositories_users.get_user_by_email(email, db)
@@ -54,9 +58,9 @@ async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(get
 
     access_token = await auth_service.create_access_token(data={"sub": email})
     refresh_token = await auth_service.create_refresh_token(data={"sub": email})
+    user.refresh_token = refresh_token
     await repositories_users.update_token(user, refresh_token, db)
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
-
 
 
 @router.get('/confirmed_email/{token}')
@@ -69,7 +73,6 @@ async def confirmed_email(token: str, db: AsyncSession = Depends(get_db)):
         return {"message": "Your email is already confirmed"}
     await repositories_users.confirmed_email(email, db)
     return {"message": "Email confirmed"}
-
 
 
 @router.post('/request_email')
