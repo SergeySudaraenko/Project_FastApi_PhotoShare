@@ -8,8 +8,10 @@ from jose import JWTError, jwt
 from src.database.db import get_db
 from src.repository import user as repository_users
 from src.config.config import settings
-from src.database.models import User
+from sqlalchemy import select
+from src.database.models import User, BlacklistedToken
 import logging
+
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
@@ -19,6 +21,7 @@ class Auth:
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     SECRET_KEY = settings.SECRET_KEY_JWT
     ALGORITHM = settings.ALGORITHM
+
 
     def verify_password(self, plain_password, hashed_password):
         return self.pwd_context.verify(plain_password, hashed_password)
@@ -75,6 +78,20 @@ class Auth:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Could not validate credentials",
             )
+        
+    async def blacklist_token(self, token: str, expires_at: datetime, db: AsyncSession):
+        blacklisted_token = BlacklistedToken(token=token, expires_at=expires_at)
+        db.add(blacklisted_token)
+        await db.commit()
+
+    async def is_token_blacklisted(self, token: str, db: AsyncSession):
+        stmt = select(BlacklistedToken).filter_by(token=token)
+        result = await db.execute(stmt)
+        blacklisted_token = result.scalar_one_or_none()
+
+        if blacklisted_token and blacklisted_token.expires_at > datetime.utcnow():
+            return True
+        return False
 
     async def get_current_user(
             self, token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)
@@ -100,21 +117,21 @@ class Auth:
             logging.error(f"JWT decoding error: {str(e)}")
             raise credentials_exception
 
+
+        if await self.is_token_blacklisted(token, db):
+            logging.error(f"Token is blacklisted: {token}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token was cancelled",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
         user = await repository_users.get_user_by_email(email, db)
         if user is None:
             logging.error(f"User not found with email: {email}")
             raise credentials_exception
-    
-    # Перевірка на БАН
-        if not user.is_active:
-            logging.error(f"User {email} is banned or inactive")
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="User is banned or inactive"
-            )
 
         return user
-       
 
     def create_email_token(self, data: dict):
         to_encode = data.copy()

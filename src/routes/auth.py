@@ -1,7 +1,7 @@
+from datetime import datetime
 from fastapi import APIRouter, HTTPException, Depends, status, Security, BackgroundTasks, Request
-from fastapi.security import OAuth2PasswordRequestForm, HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.database.models import User
 from src.services.auth_service import auth_service
 from src.database.db import get_db
@@ -9,10 +9,25 @@ from src.repository import user as repositories_users
 from src.schemas.users import UserSchema, TokenSchema, UserResponse, RequestEmail
 from src.services.email import send_email
 from src.config import messages
+from jose import jwt , JWTError
+from src.config.config import settings
 
 router = APIRouter(prefix='/auth', tags=['auth'])
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 get_refresh_token = HTTPBearer()
 
+
+
+@router.post('/logout')
+async def logout(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY_JWT, algorithms=[settings.ALGORITHM])
+        expires_at = datetime.utcfromtimestamp(payload['exp'])
+        await auth_service.blacklist_token(token, expires_at, db)
+        return {"message": "Logged out successfully"}
+    except JWTError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+    
 
 @router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def signup(body: UserSchema, bt: BackgroundTasks, request: Request, db: AsyncSession = Depends(get_db)):
