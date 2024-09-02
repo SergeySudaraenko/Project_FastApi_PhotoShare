@@ -1,34 +1,41 @@
-import os
-
+import contextlib
 from dotenv import load_dotenv
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    AsyncEngine,
+    create_async_engine,
+    async_sessionmaker,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from src.config.config import settings
 
-engine = create_async_engine(settings.DB_URL, echo=True)
-SessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=engine, class_=AsyncSession
-)
-
-
-class Base(DeclarativeBase):
-    pass
-
 
 class DatabaseSessionManager:
-    def __init__(self, session_factory):
-        self.session_factory = session_factory
+    def __init__(self, url: str):
+        self._engine: AsyncEngine | None = create_async_engine(url)
+        self._session_maker: async_sessionmaker = async_sessionmaker(
+            autoflush=False, autocommit=False, bind=self._engine
+        )
 
-    async def __aenter__(self):
-        self.session = self.session_factory()
-        return self.session
+    @contextlib.asynccontextmanager
+    async def session(self):
+        if self._session_maker is None:
+            raise Exception("Session is not initialized")
+        session = self._session_maker()
+        try:
+            yield session
+        except ValueError as err:
+            print(err)
+            await session.rollback()
+        finally:
+            await session.close()
 
-    async def __aexit__(self, exc_type, exc, tb):
-        await self.session.close()
+
+sessionmanager = DatabaseSessionManager(settings.DB_URL)
 
 
-async def get_db():
-    async with DatabaseSessionManager(SessionLocal) as session:
+async def get_db() -> AsyncSession:
+    async with sessionmanager.session() as session:
         yield session
