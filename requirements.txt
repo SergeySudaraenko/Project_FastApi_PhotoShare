@@ -1,11 +1,17 @@
 
-fastapi
-uvicorn
-sqlalchemy
+fastapi~=0.112.2
+uvicorn~=0.30.6
+sqlalchemy~=2.0.32
 psycopg2-binary
-pydantic
-python-dotenv
-cloudinary
-qrcode
+pydantic~=2.8.2
+python-dotenv~=1.0.1
+cloudinary~=1.41.0
+qrcode~=7.4.2
 pytest
-alembic
+alembic~=1.13.2
+pydantic_settings
+fastapi[standard]
+asyncpg
+libgravatar~=1.0.4
+
+starlette~=0.38.2

@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./src/database"
+    ],
+    "git.ignoreLimitWarning": true
+}
