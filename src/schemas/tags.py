@@ -29,12 +29,3 @@ class PhotoResponse(PhotoBase):
     id: int
     url: str
 
-
-
-
-
-
-
-
-
-
