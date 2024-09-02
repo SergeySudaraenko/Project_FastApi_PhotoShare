@@ -1,6 +1,5 @@
 from pydantic import BaseModel
-from sqlalchemy import Column, DateTime, Integer, String, ForeignKey, func
-from sqlalchemy.orm import relationship
+
 
 
 # Pydantic Models
@@ -12,30 +11,44 @@ class TagCreate(TagBase):
     pass
 
 
-class TagInDBBase(TagBase):
+class TagUpdate(TagBase):
+    pass
+
+
+class TagResponse(TagBase):
     id: int
 
     class Config:
         orm_mode = True
 
-
-class TagResponse(TagInDBBase):
+class PhotoBase(BaseModel):
     pass
 
-
-class PhotoTagBase(BaseModel):
-    photo_id: int
-    tag_id: int
-
-
-class PhotoTagCreate(PhotoTagBase):
-    pass
+class PhotoResponse(PhotoBase):
+    id: int
+    url: str
 
 
-class PhotoTagInDBBase(PhotoTagBase):
-    class Config:
-        orm_mode = True
 
 
-class PhotoTagResponse(PhotoTagInDBBase):
-    pass
+
+
+
+
+
+# class PhotoTagBase(BaseModel):
+#     photo_id: int
+#     tag_id: int
+#
+#
+# class PhotoTagCreate(PhotoTagBase):
+#     pass
+#
+#
+# class PhotoTagInDBBase(PhotoTagBase):
+#     class Config:
+#         orm_mode = True
+#
+#
+# class PhotoTagResponse(PhotoTagInDBBase):
+#     pass
