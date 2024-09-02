@@ -1,5 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 
+from src.schemas.search import TagBase
+
 
 class TagCreate(BaseModel):
     name: str
