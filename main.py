@@ -1,12 +1,10 @@
 import uvicorn
-
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 from src.routes import auth, comments, photos, profile, rating, search, users, tags
 from src.database.db import get_db
-
 
 origins = ["*"]
 
