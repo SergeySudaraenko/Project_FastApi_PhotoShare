@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.responses import StreamingResponse
+
 from src.database.db import get_db
 from src.schemas.photos import PhotoCreate, PhotoResponse, PhotoTransformModel
 from src.repository import photo as photo_repository
@@ -8,6 +10,7 @@ from src.database.models import Photo, User
 from src.services.auth_service import auth_service
 from src.config.config import settings
 from src.services import cloudinary_service
+from src.services import qr_code_service
 
 router = APIRouter(prefix="/photo", tags=["photo"])
 
@@ -70,7 +73,7 @@ async def delete_photo(photo_id: int, db: AsyncSession = Depends(get_db),
     return {"detail": "Photo deleted"}
 
 
-@router.post("/upload")
+@router.post("/upload", status_code=status.HTTP_201_CREATED)
 async def upload_photo(
         file: UploadFile = File(...),
         description: str = None,
@@ -113,4 +116,23 @@ async def create_transformed_image(body: PhotoTransformModel, current_user: User
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Resource already exists")
 
     new_image = await photo_repository.create(transformed_photo_url, photo, db)
+
     return new_image
+
+
+@router.post("/qrcode/{photo_id}", status_code=status.HTTP_201_CREATED)
+async def generate_qrcode(image_id: int,
+                          current_user: User = Depends(auth_service.get_current_user),
+                          db: AsyncSession = Depends(get_db)):
+
+    photo = await photo_repository.get_photo_by_id(image_id, db)
+
+    if photo is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
+
+    qr_code = await qr_code_service.create_qr_code(photo.url)
+
+    if qr_code is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
+
+    return StreamingResponse(qr_code, media_type="image/png", status_code=status.HTTP_201_CREATED)
