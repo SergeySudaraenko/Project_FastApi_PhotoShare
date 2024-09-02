@@ -127,3 +127,4 @@ class Rating(Base):
 
     photo: Mapped["Photo"] = relationship("Photo", back_populates="ratings")
     user: Mapped["User"] = relationship("User")
+# 
