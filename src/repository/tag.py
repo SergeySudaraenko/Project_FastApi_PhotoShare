@@ -1,8 +1,7 @@
-from typing import Optional, List
 from fastapi import HTTPException, status
 from src.database.models import Photo, Tag, photo_tag
 from src.schemas.tags import TagCreate
-from sqlalchemy import select,  Date, func
+from sqlalchemy import select,  func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import exists
