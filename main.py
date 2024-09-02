@@ -1,10 +1,12 @@
 import uvicorn
+
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
-from src.routes import auth, comments, photos, profile, rating, search, users
+from src.routes import auth, comments, photos, profile, rating, search, users, tags
 from src.database.db import get_db
+
 
 origins = ["*"]
 
@@ -25,6 +27,7 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
 app.include_router(profile.router, prefix="/api")
 app.include_router(photos.router, prefix="/api")
+app.include_router(tags.router, prefix="/api")
 app.include_router(search.router, prefix="/api")
 app.include_router(comments.router, prefix="/api")
 app.include_router(rating.router, prefix="/api")
