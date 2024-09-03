@@ -11,8 +11,9 @@ class CommentCreate(CommentBase):
     photo_id: int
 
 
-class CommentUpdate(BaseModel):
+class CommentUpdateSchema(BaseModel):
     comment_text: Optional[str] = None
+    updated_at: datetime
 
 
 class CommentInDBBase(CommentBase):
@@ -26,5 +27,8 @@ class CommentInDBBase(CommentBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-class Comment(CommentInDBBase):
-    pass
+class CommentResponse(BaseModel):
+    comment_text: str
+    user_id: int
+    created_at: datetime
+    updated_at: datetime
