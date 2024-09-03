@@ -127,3 +127,12 @@ class Rating(Base):
 
     photo: Mapped["Photo"] = relationship("Photo", back_populates="ratings")
     user: Mapped["User"] = relationship("User")
+
+
+ #Модель для чорного списку токенів
+class BlacklistedToken(Base):
+    __tablename__ = 'blacklisted_tokens'
+
+    token = Column(String, primary_key=True, index=True)
+    blacklisted_on = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=False)
