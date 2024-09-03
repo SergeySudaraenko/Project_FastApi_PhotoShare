@@ -19,7 +19,7 @@ PhotoShare - це REST API для роботи зі світлинами, ком
 1. Скопіюйте `.env.example` в `.env` і налаштуйте змінні середовища.
 
 2. Встановіть залежності:
-ффф
+
    poetry init
    poetry shell
    poetry install
