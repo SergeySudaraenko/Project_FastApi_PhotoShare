@@ -20,6 +20,19 @@ class PhotoResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class PhotoResponseRating(BaseModel):
+    id: int
+    url: str
+    description: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+    owner_id: int
+    rating: float
+
+    class Config:
+        from_attributes = True
+
+
 class PhotoTransformModel(BaseModel):
     id: int
     transformation: str = "standard"
