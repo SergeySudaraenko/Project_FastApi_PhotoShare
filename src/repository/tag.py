@@ -56,8 +56,6 @@ class TagRepository:
         if tag:
 
             tag.name=new_tag_name
-            # for key, value in tag_update.model_dump().items():
-            #     setattr(tag, key, value)
             await self.session.commit()
             await self.session.refresh(tag)
         return tag
