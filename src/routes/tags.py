@@ -11,7 +11,7 @@ from src.services.auth_service import auth_service
 router = APIRouter(prefix='/tags', tags=['tag'])
 
 
-@router.post("/", response_model=TagResponse)
+@router.post("/", response_model=TagResponse, status_code=status.HTTP_201_CREATED)
 async def create_tag(tag_create: TagCreate, db: AsyncSession = Depends(get_db),
                      current_user: User = Depends(auth_service.get_current_user)):
     tag_repo = TagRepository(db)
@@ -72,7 +72,7 @@ async def get_photos_by_tag(tag_id: int, db: AsyncSession = Depends(get_db),
     return await tag_repo.get_photos_by_tag(tag_id)
 
 
-@router.post("/photos/{photo_id}/tags/", response_model=PhotoResponse)
+@router.post("/photos/{photo_id}/tags/", response_model=PhotoResponse, status_code=status.HTTP_201_CREATED)
 async def add_tag_to_photo(photo_id: int, new_tag_name: str, db: AsyncSession = Depends(get_db),
                            current_user: User = Depends(auth_service.get_current_user)):
     tag_repo = TagRepository(db)
