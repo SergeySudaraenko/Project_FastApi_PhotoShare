@@ -1,6 +1,7 @@
-from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
+
+from pydantic import BaseModel, ConfigDict
 
 
 class CommentBase(BaseModel):
@@ -22,7 +23,7 @@ class CommentInDBBase(CommentBase):
     updated_at: datetime
     user_id: int
     photo_id: int
-    is_deleted: bool  
+    is_deleted: bool
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -8,15 +8,10 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload
 
 from src.database.models import Comment
-from src.schemas.search import CommentUpdate
 
 
 async def create_comment(db: AsyncSession, user_id: int, photo_id: int, text: str) -> Comment:
-    new_comment = Comment(
-        user_id=user_id,
-        photo_id=photo_id,
-        comment_text=text
-    )
+    new_comment = Comment(user_id=user_id, photo_id=photo_id, comment_text=text)
     try:
         db.add(new_comment)
         await db.commit()

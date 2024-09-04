@@ -1,12 +1,13 @@
-from pydantic import BaseModel, Field, validator, ConfigDict
 from decimal import Decimal
 from typing import Optional
+
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 
 class RatingBase(BaseModel):
     score: Decimal = Field(..., description="The rating score between 0 and 6")
 
-    @validator('score')
+    @field_validator('score')
     def validate_score(cls, score: Decimal) -> Decimal:
         if not (0 < score < 6):
             raise ValueError('Score must be greater than 0 and less than 6.')
@@ -32,10 +33,8 @@ class RatingResponse(RatingInDBBase):
 class RatingUpdate(BaseModel):
     score: Optional[Decimal] = Field(None, description="The updated rating score between 0 and 6")
 
-    @validator('score', always=True)
+    @field_validator('score', mode='before')
     def validate_score(cls, score: Optional[Decimal]) -> Optional[Decimal]:
         if score is not None and not (0 < score < 6):
             raise ValueError('Score must be greater than 0 and less than 6.')
         return score
-
-
