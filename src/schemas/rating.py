@@ -1,17 +1,10 @@
-from decimal import Decimal
 from typing import Optional
 
-from pydantic import BaseModel, Field, ConfigDict, field_validator
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class RatingBase(BaseModel):
-    score: Decimal = Field(..., description="The rating score between 0 and 6")
-
-    @field_validator('score')
-    def validate_score(cls, score: Decimal) -> Decimal:
-        if not (0 < score < 6):
-            raise ValueError('Score must be greater than 0 and less than 6.')
-        return score
+    value: int = Field(..., description="The rating score between 1 and 5")
 
 
 class RatingCreate(RatingBase):
@@ -22,19 +15,10 @@ class RatingInDBBase(RatingBase):
     id: int
     user_id: int
     photo_id: int
+    value: int
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class RatingResponse(RatingInDBBase):
-    pass
-
-
-class RatingUpdate(BaseModel):
-    score: Optional[Decimal] = Field(None, description="The updated rating score between 0 and 6")
-
-    @field_validator('score', mode='before')
-    def validate_score(cls, score: Optional[Decimal]) -> Optional[Decimal]:
-        if score is not None and not (0 < score < 6):
-            raise ValueError('Score must be greater than 0 and less than 6.')
-        return score
+class AverageRatingResponse(BaseModel):
+    average_rating: float

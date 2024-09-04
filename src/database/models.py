@@ -89,6 +89,12 @@ class Rating(Base):
     photo: Mapped["Photo"] = relationship("Photo", back_populates="ratings")
     user: Mapped["User"] = relationship("User")
 
+    @validates('score')
+    def validate_score(self, value):
+        if not (1 <= value <= 5):
+            raise ValueError('Score must be greater or equal 1 and less than 5.')
+        return value
+
 
 # Модель для чорного списку токенів
 class BlacklistedToken(Base):
