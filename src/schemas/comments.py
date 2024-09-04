@@ -8,8 +8,9 @@ class CommentBase(BaseModel):
     comment_text: str
 
 
-class CommentCreate(CommentBase):
+class CommentCreate(BaseModel):
     photo_id: int
+    content: str
 
 
 class CommentUpdateSchema(BaseModel):
@@ -33,3 +34,11 @@ class CommentResponse(BaseModel):
     user_id: int
     created_at: datetime
     updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CommentDelete(BaseModel):
+    is_deleted: bool
+
+    model_config = ConfigDict(from_attributes=True)
