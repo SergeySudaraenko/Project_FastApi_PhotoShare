@@ -1,53 +1,57 @@
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from datetime import datetime
 from typing import List, Optional
 
-from src.database.models import Photo, Tag
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.db import get_db
-from sqlalchemy.orm import Session as DBSession
+from src.database.models import Photo, Tag, User
+from src.schemas.photos import PhotoResponse
+from src.services.auth_service import auth_service
 
 router = APIRouter(prefix="/search", tags=["search"])
 
 
-class SearchParams(BaseModel):
-    keyword: Optional[str] = None
-    tag: Optional[str] = None
-    min_rating: Optional[float] = None
-    max_rating: Optional[float] = None
-    start_date: Optional[str] = None
-    end_date: Optional[str] = None
+@router.get("/search", response_model=List[PhotoResponse])
+async def search_photos(keyword: Optional[str] = None, tag: Optional[str] = None, min_rating: Optional[float] = None,
+                        max_rating: Optional[float] = None, start_date: Optional[str] = None,
+                        end_date: Optional[str] = None, db: AsyncSession = Depends(get_db),
+                        current_user: User = Depends(auth_service.get_current_user)):
+    query = select(Photo)
 
+    if keyword:
+        query = query.where(Photo.description.ilike(f"%{keyword}%"))
 
-@router.get("/search")#,response_model=List[Photo])
-async def search_photos(params: SearchParams, db: DBSession = Depends(get_db)):
-    query = db.query(Photo)
-
-    if params.keyword:
-        query = query.filter(Photo.description.ilike(f"%{params.keyword}%"))
-
-    if params.tag:
-        tag = db.query(Tag).filter_by(name=params.tag).first()
-        if not tag:
+    if tag:
+        tag_obj = await db.execute(select(Tag).filter_by(name=tag))
+        tag_obj = tag_obj.scalar()
+        if not tag_obj:
             raise HTTPException(status_code=404, detail="Tag not found")
-        query = query.filter(Photo.tags.any(Tag.id == tag.id))
+        query = query.where(Photo.photo_tags.any(Tag.id == tag_obj.id))
 
-    if params.min_rating:
-        query = query.filter(Photo.average_rating >= params.min_rating)
+    if min_rating:
+        query = query.where(Photo.average_rating >= min_rating)
 
-    if params.max_rating:
-        query = query.filter(Photo.average_rating <= params.max_rating)
+    if max_rating:
+        query = query.where(Photo.average_rating <= max_rating)
 
-    if params.start_date:
-        query = query.filter(Photo.created_at >= params.start_date)
+    if start_date:
+        try:
+            start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
+            query = query.where(Photo.created_at >= start_date_obj)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid start_date format. Use YYYY-MM-DD.")
 
-    if params.end_date:
-        query = query.filter(Photo.created_at <= params.end_date)
+    if end_date:
+        try:
+            start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
+            query = query.where(Photo.created_at <= start_date_obj)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid start_date format. Use YYYY-MM-DD.")
 
-    results = query.all()
-    if not results:
-        raise HTTPException(
-            status_code=404, detail="No photos found matching the criteria"
-        )
-
-    return results
+    results = await db.execute(query)
+    photos = results.scalars().all()
+    if not photos:
+        raise HTTPException(status_code=404, detail="No photos found matching the criteria")
+    return photos

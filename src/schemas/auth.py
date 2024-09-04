@@ -1,7 +1,8 @@
-from pydantic import BaseModel, EmailStr, ConfigDict
-from typing import Optional
-from datetime import datetime
 import enum
+from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel, EmailStr, ConfigDict, Field
 
 
 class Role(enum.Enum):
@@ -11,7 +12,7 @@ class Role(enum.Enum):
 
 
 class AuthBase(BaseModel):
-    username: str
+    username: str = Field(min_length=3, max_length=50)
     email: EmailStr
 
 
@@ -48,4 +49,4 @@ class AuthToken(BaseModel):
 
 class TokenData(BaseModel):
     username: str
-    role: str
+    role: Role

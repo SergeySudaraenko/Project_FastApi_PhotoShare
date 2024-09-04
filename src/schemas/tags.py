@@ -14,18 +14,16 @@ class TagUpdate(TagBase):
 
 
 class TagResponse(TagBase):
-
-
     id: int
     name: str
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
+
 
 class PhotoBase(BaseModel):
     pass
 
-class PhotoResponse(PhotoBase):
-    id: int
-    url: str
 
+class PhotoResponse(PhotoBase):
+    uid: str
+    url: str

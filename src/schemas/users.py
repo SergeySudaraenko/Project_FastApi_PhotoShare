@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from datetime import datetime
 from typing import Optional
+
+from pydantic import BaseModel, Field, EmailStr, ConfigDict
+
 from src.schemas.auth import Role
 
 

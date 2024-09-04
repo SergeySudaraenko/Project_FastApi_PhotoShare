@@ -1,68 +1,70 @@
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-from src.database.models import Rating, Photo
-from src.schemas.rating import RatingCreate, RatingUpdate
 from fastapi import HTTPException, status
+from sqlalchemy import and_, func, desc, asc
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
-def create_rating(db: Session, rating: RatingCreate, photo_id: int, user_id: int):
-    
-    existing_rating = db.query(Rating).filter_by(photo_id=photo_id, user_id=user_id).first()
-    if existing_rating:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You have already rated this photo."
-        )
-    
-    # Перевіряємо, що фото існує
-    photo = db.query(Photo).filter_by(id=photo_id).first()
-    if not photo:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Photo not found."
-        )
-    
-    db_rating = Rating(photo_id=photo_id, user_id=user_id, **rating.dict())
-    try:
-        db.add(db_rating)
-        db.commit()
-        db.refresh(db_rating)
-    except IntegrityError:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error saving rating."
-        )
-    
-    return db_rating
+from src.database.models import Rating, Photo
+from src.schemas.photos import PhotoResponseRating
 
-def get_ratings_for_photo(db: Session, photo_id: int):
-    return db.query(Rating).filter_by(photo_id=photo_id).all()
 
-def update_rating(db: Session, rating_id: int, rating_update: RatingUpdate):
-    db_rating = db.query(Rating).filter_by(id=rating_id).first()
-    if not db_rating:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Rating not found."
-        )
-    
-    for key, value in rating_update.dict(exclude_unset=True).items():
-        setattr(db_rating, key, value)
-    
-    db.commit()
-    db.refresh(db_rating)
-    
-    return db_rating
+async def create_rating(photo_id: int, rating: int, db: AsyncSession, user):
+    is_self_image_result = await db.execute(select(Photo).filter(and_(Photo.id == photo_id, Photo.owner_id == user.id)))
+    is_self_image = is_self_image_result.scalar_one_or_none()
 
-def delete_rating(db: Session, rating_id: int):
-    db_rating = db.query(Rating).filter_by(id=rating_id).first()
-    if not db_rating:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Rating not found."
-        )
-    
-    db.delete(db_rating)
-    db.commit()
+    already_rated_result = await db.execute(
+        select(Rating).filter(and_(Rating.photo_id == photo_id, Rating.user_id == user.id)))
+    already_rated = already_rated_result.scalar_one_or_none()
 
-    return {"detail": "Rating deleted successfully."}
+    image_exists_result = await db.execute(select(Photo).filter(Photo.id == photo_id))
+    image_exists = image_exists_result.scalar_one_or_none()
+
+    if is_self_image:
+        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="It`s not possible to rate own image.")
+    if already_rated:
+        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="It`s not possible to rate twice.")
+    if image_exists:
+        new_rate = Rating(photo_id=photo_id, value=rating, user_id=user.id)
+        db.add(new_rate)
+        await db.commit()
+        await db.refresh(new_rate)
+
+        return new_rate
+
+
+async def calculate_rating(photo_id: int, db: AsyncSession):
+    result = await db.execute(select(func.avg(Rating.value)).filter(Rating.photo_id == photo_id))
+    average_rating = result.scalar()
+
+    print('average_rating', average_rating)
+    return average_rating
+
+
+async def show_images_by_rating(sort_dsc: bool, db: AsyncSession):
+    average_rating_label = "calculated_average_rating"
+
+    sort_order = desc(average_rating_label) if sort_dsc else asc(average_rating_label)
+
+    stmt = (select(Photo, func.avg(Rating.value).label(average_rating_label)).join(Photo.ratings).group_by(
+        Photo.id).order_by(sort_order).having(func.avg(Rating.value).isnot(None)))
+
+    result = await db.execute(stmt)
+    images_with_ratings = result.all()
+
+    response = [
+        PhotoResponseRating(id=photo.id, url=photo.url, description=photo.description, created_at=photo.created_at,
+                            updated_at=photo.updated_at, owner_id=photo.owner_id, rating=average_rating) for
+        photo, average_rating in images_with_ratings]
+
+    return response
+
+
+async def delete_rating(rating_id: int, db: AsyncSession, user):
+    result = await db.execute(select(Rating).filter(and_(Rating.id == rating_id, Photo.owner_id == user.id)))
+    rate = result.scalars().first()
+
+    if rate:
+        await db.delete(rate)
+        await db.commit()
+        return {"detail": "Rating deleted successfully."}
+
+    return {"detail": "Rating not found."}

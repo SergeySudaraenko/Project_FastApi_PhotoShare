@@ -4,12 +4,7 @@ import qrcode
 
 
 async def create_qr_code(url: str):
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
-        box_size=3,
-        border=4,
-    )
+    qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=3, border=4)
     qr.add_data(url)
     qr.make(fit=True)
 

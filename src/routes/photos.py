@@ -1,16 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import StreamingResponse
 
 from src.database.db import get_db
-from src.schemas.photos import PhotoCreate, PhotoResponse, PhotoTransformModel
-from src.repository import photo as photo_repository
-from sqlalchemy import select
 from src.database.models import Photo, User
-from src.services.auth_service import auth_service
-from src.config.config import settings
+from src.repository import photo as photo_repository
+from src.schemas.photos import PhotoCreate, PhotoResponse, PhotoTransformModel
 from src.services import cloudinary_service
 from src.services import qr_code_service
+from src.services.auth_service import auth_service
 
 router = APIRouter(prefix="/photo", tags=["photo"])
 
@@ -43,7 +42,7 @@ async def update_photo_description(
         if not photo:
             raise HTTPException(status_code=404, detail="Photo not found")
 
-        if photo.owner_id != current_user.id and not current_user.is_admin:
+        if photo.owner_id != current_user.id and current_user.role != 'admin':
             raise HTTPException(status_code=403, detail="Not enough permissions")
 
         photo.description = description
@@ -64,7 +63,7 @@ async def delete_photo(photo_id: int, db: AsyncSession = Depends(get_db),
         if not photo:
             raise HTTPException(status_code=404, detail="Photo not found")
 
-        if photo.owner_id != current_user.id and not current_user.is_admin:
+        if photo.owner_id != current_user.id and not current_user.role != 'admin':
             raise HTTPException(status_code=403, detail="Not enough permissions")
 
         await session.delete(photo)
@@ -99,7 +98,17 @@ async def upload_photo(
 
 
 @router.post("/transform", status_code=status.HTTP_201_CREATED)
-async def create_transformed_image(body: PhotoTransformModel, current_user: User = Depends(auth_service.get_current_user), db: AsyncSession = Depends(get_db)):
+async def create_transformed_image(body: PhotoTransformModel,
+                                   current_user: User = Depends(auth_service.get_current_user),
+                                   db: AsyncSession = Depends(get_db)):
+    """
+    For transformation use:
+        - "grayscale"
+        - "cartoonify"
+        - "radius"
+        - "standard"
+        - "vectorize"
+    """
     photo = await photo_repository.get_photo_by_id(body.id, db)
 
     if not photo.url:
@@ -124,7 +133,6 @@ async def create_transformed_image(body: PhotoTransformModel, current_user: User
 async def generate_qrcode(image_id: int,
                           current_user: User = Depends(auth_service.get_current_user),
                           db: AsyncSession = Depends(get_db)):
-
     photo = await photo_repository.get_photo_by_id(image_id, db)
 
     if photo is None:
