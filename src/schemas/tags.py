@@ -25,5 +25,5 @@ class PhotoBase(BaseModel):
 
 
 class PhotoResponse(PhotoBase):
-    uid: str
+    id: int
     url: str

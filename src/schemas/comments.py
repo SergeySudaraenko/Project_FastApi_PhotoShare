@@ -30,6 +30,7 @@ class CommentInDBBase(CommentBase):
 
 
 class CommentResponse(BaseModel):
+    id: int
     comment_text: str
     user_id: int
     created_at: datetime

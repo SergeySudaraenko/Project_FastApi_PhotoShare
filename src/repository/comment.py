@@ -47,7 +47,7 @@ async def update_comment(comment_id: int, new_text: str, user_id: int, db: Async
     if not comment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
     # Перевіряємо права користувача
-    if comment.id != user_id:
+    if comment.user_id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
     if comment.is_deleted == True:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Comment is deleted")
