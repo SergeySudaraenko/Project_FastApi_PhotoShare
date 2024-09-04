@@ -130,10 +130,10 @@ async def create_transformed_image(body: PhotoTransformModel,
 
 
 @router.post("/qrcode/{photo_id}", status_code=status.HTTP_201_CREATED)
-async def generate_qrcode(image_id: int,
+async def generate_qrcode(photo_id: int,
                           current_user: User = Depends(auth_service.get_current_user),
                           db: AsyncSession = Depends(get_db)):
-    photo = await photo_repository.get_photo_by_id(image_id, db)
+    photo = await photo_repository.get_photo_by_id(photo_id, db)
 
     if photo is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
