@@ -12,14 +12,12 @@ class Base(DeclarativeBase):
     pass
 
 
-# Перерахування ролей
 class Role(enum.Enum):
     admin = "admin"
     moderator = "moderator"
     user = "user"
 
 
-# Модель для користувачів
 class User(Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -36,7 +34,6 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
-# Модель для фото
 class Photo(Base):
     __tablename__ = "photos"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -52,7 +49,6 @@ class Photo(Base):
     average_rating: Mapped[float] = mapped_column(Float, default=0.0)
 
 
-# Модель для тегів
 class Tag(Base):
     __tablename__ = "tags"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -65,7 +61,6 @@ photo_tag = Table("photo_tag", Base.metadata, Column("photo_id", Integer, Foreig
                   Column("tag_id", Integer, ForeignKey("tags.id")))
 
 
-# Модель коментів
 class Comment(Base):
     __tablename__ = "comments"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -79,7 +74,6 @@ class Comment(Base):
     photo: Mapped["Photo"] = relationship("Photo", back_populates="comments")
 
 
-# Модель для рейтингів
 class Rating(Base):
     __tablename__ = "ratings"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -96,7 +90,6 @@ class Rating(Base):
         return value
 
 
-# Модель для чорного списку токенів
 class BlacklistedToken(Base):
     __tablename__ = 'blacklisted_tokens'
     token = Column(String, primary_key=True, index=True)
