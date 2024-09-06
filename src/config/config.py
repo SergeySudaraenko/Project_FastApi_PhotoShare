@@ -1,5 +1,4 @@
-from pydantic import field_validator, ConfigDict
-from pydantic_settings import BaseSettings
+from pydantic import BaseSettings, field_validator, ConfigDict
 from typing import ClassVar
 
 class Settings(BaseSettings):
@@ -8,7 +7,7 @@ class Settings(BaseSettings):
     PG_PASSWORD: str = "v6sNjAnxio5q"
     PG_PORT: str = "5432"
     PG_DOMAIN: str = "ep-delicate-credit-a285zbki.eu-central-1.pg.koyeb.app"
-    DB_URL: str = f"postgresql+asyncpg://${PG_USER}:${PG_PASSWORD}@${PG_DOMAIN}:${PG_PORT}/${PG_DB}"
+    
     SECRET_KEY_JWT: int = 1234567890
     ALGORITHM: str = "HS256"
     MAIL_USERNAME: str = "vlad_bb@meta.ua"
@@ -19,6 +18,10 @@ class Settings(BaseSettings):
     CLOUDINARY_NAME: str = "dpc5fcmq5"
     CLOUDINARY_API_KEY: int = 951437173691459
     CLOUDINARY_API_SECRET: str = "6irfVmNhHCvEDnMjaGy4DRSjcpk"
+    
+    @property
+    def DB_URL(self) -> str:
+        return f"postgresql+asyncpg://{self.PG_USER}:{self.PG_PASSWORD}@{self.PG_DOMAIN}:{self.PG_PORT}/{self.PG_DB}"
 
     @classmethod
     @field_validator("ALGORITHM")
@@ -27,6 +30,7 @@ class Settings(BaseSettings):
             raise ValueError("Algorithm must be HS256 or HS512")
         return v
 
-    model_config = ConfigDict(extra="ignore", env_file=".env", env_file_encoding="utf-8")  # noqa
+    model_config = ConfigDict(extra="ignore", env_file=".env", env_file_encoding="utf-8")
 
 settings = Settings()
+
