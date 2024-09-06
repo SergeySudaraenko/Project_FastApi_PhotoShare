@@ -1,4 +1,5 @@
-from pydantic import BaseSettings, field_validator, ConfigDict
+from pydantic import  field_validator, ConfigDict
+from pydantic_settings import BaseSettings
 from typing import ClassVar
 
 class Settings(BaseSettings):
